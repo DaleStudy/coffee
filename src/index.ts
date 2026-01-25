@@ -21,6 +21,11 @@ async function main() {
   const pairs = createMatches(participants, history);
   console.log(`${pairs.length}개 조 매칭 완료`);
 
+  if (pairs.length === 0) {
+    console.log("생성된 매칭이 없어 Discord에 발표하지 않습니다.");
+    return;
+  }
+
   // 4. 매칭 이력 저장
   await saveHistory(history, pairs);
 
@@ -30,4 +35,7 @@ async function main() {
   console.log("\n✅ 커피챗 매칭이 완료되었습니다!");
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
