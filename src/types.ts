@@ -1,13 +1,13 @@
 export interface MatchRecord {
-  date: string;
-  pairs: string[][];
+	date: string;
+	pairs: string[][];
 }
 
 export interface MatchHistory {
-  matches: MatchRecord[];
+	matches: MatchRecord[];
 }
 
 export interface Participant {
-  id: string;
-  username: string;
+	id: string;
+	username: string;
 }
