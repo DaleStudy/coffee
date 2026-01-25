@@ -4,7 +4,8 @@
   "description": "디스코드 커피챗 매칭 봇",
   "type": "module",
   "scripts": {
-    "match": "bun run src/index.ts"
+    "match": "bun run src/index.ts",
+    "test": "bun test"
   },
   "dependencies": {
     "discord.js": "^14.25.1"
