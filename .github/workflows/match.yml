@@ -1,0 +1,48 @@
+name: Coffee Chat Matching
+
+on:
+  schedule:
+    # 매주 월요일 UTC 00:00 (KST 09:00)
+    - cron: "0 0 * * 1"
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  match:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Check if this is a matching week
+        id: check-week
+        run: |
+          WEEK_NUM=$(date +%V)
+          if [ $((WEEK_NUM % 2)) -eq 0 ]; then
+            echo "skip=false" >> $GITHUB_OUTPUT
+          else
+            echo "skip=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run matching
+        if: steps.check-week.outputs.skip == 'false' || github.event_name == 'workflow_dispatch'
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
+          DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
+        run: bun run match
+
+      - name: Commit history
+        if: steps.check-week.outputs.skip == 'false' || github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/history.json
+          git diff --staged --quiet || git commit -m "chore: update match history"
+          git push

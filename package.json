@@ -1,0 +1,16 @@
+{
+  "name": "coffee",
+  "version": "1.0.0",
+  "description": "디스코드 커피챗 매칭 봇",
+  "type": "module",
+  "scripts": {
+    "match": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.25.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.9.3"
+  }
+}
