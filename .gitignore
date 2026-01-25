@@ -18,3 +18,5 @@ dist/
 # Logs
 *.log
 npm-debug.log*
+
+CLAUDE.md
