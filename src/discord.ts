@@ -2,7 +2,7 @@ import { Client, GatewayIntentBits } from "discord.js";
 import type { Participant } from "./types.ts";
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN!;
-const GUILD_ID = process.env.DISCORD_GUILD_ID!;
+const SERVER_ID = process.env.DISCORD_SERVER_ID!;
 const ROLE_ID = process.env.DISCORD_ROLE_ID!;
 
 export async function getParticipants(): Promise<Participant[]> {
@@ -13,7 +13,7 @@ export async function getParticipants(): Promise<Participant[]> {
   await client.login(DISCORD_BOT_TOKEN);
 
   try {
-    const guild = await client.guilds.fetch(GUILD_ID);
+    const guild = await client.guilds.fetch(SERVER_ID);
     const members = await guild.members.fetch();
 
     const participants = members
