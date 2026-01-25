@@ -6,13 +6,10 @@
       "name": "coffee",
       "dependencies": {
         "discord.js": "^14.25.1",
-        "typescript": "^5.9.3",
       },
       "devDependencies": {
         "@types/bun": "latest",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "^5.9.3",
       },
     },
   },

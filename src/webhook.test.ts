@@ -20,7 +20,7 @@ describe("announceMatches", () => {
     globalThis.fetch = mock(async (url: string, options: RequestInit) => {
       capturedBody = options.body as string;
       return new Response(null, { status: 200 });
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
 
     // 모듈을 동적으로 import해서 mock된 환경변수 사용
     const { announceMatches } = await import("./webhook.ts");
@@ -47,7 +47,7 @@ describe("announceMatches", () => {
     globalThis.fetch = mock(async (url: string, options: RequestInit) => {
       capturedBody = options.body as string;
       return new Response(null, { status: 200 });
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
 
     const { announceMatches } = await import("./webhook.ts");
 
@@ -68,7 +68,7 @@ describe("announceMatches", () => {
   test("웹훅 실패 시 에러를 던진다", async () => {
     globalThis.fetch = mock(async () => {
       return new Response(null, { status: 500 });
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
 
     const { announceMatches } = await import("./webhook.ts");
 
