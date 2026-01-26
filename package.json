@@ -1,0 +1,21 @@
+{
+	"name": "coffee",
+	"version": "1.0.0",
+	"description": "디스코드 커피챗 매칭 봇",
+	"type": "module",
+	"scripts": {
+		"match": "bun run src/index.ts",
+		"test": "bun test",
+		"lint": "biome check .",
+		"format": "biome format --write .",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"discord.js": "^14.25.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.12",
+		"@types/bun": "latest",
+		"typescript": "^5.9.3"
+	}
+}
