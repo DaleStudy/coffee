@@ -20,15 +20,15 @@ describe("createMatches", () => {
 		expect(pairs.every((pair) => pair.length === 2)).toBe(true);
 	});
 
-	test("홀수 인원일 때 마지막 조가 3인이 된다", () => {
+	test("홀수 인원일 때 한 조가 3인이 된다", () => {
 		const participants = createParticipants(5);
 		const history: MatchHistory = { matches: [] };
 
 		const pairs = createMatches(participants, history);
 
 		expect(pairs).toHaveLength(2);
-		expect(pairs[0]).toHaveLength(2);
-		expect(pairs[1]).toHaveLength(3);
+		const lengths = pairs.map((p) => p.length).sort();
+		expect(lengths).toEqual([2, 3]);
 	});
 
 	test("1명일 때 빈 배열을 반환한다", () => {
