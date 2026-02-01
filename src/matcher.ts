@@ -61,6 +61,18 @@ export function createMatches(
 	const pairs: Participant[][] = [];
 
 	let shuffled = shuffle(participants);
+
+	// 홀수일 때 3인조 후보를 먼저 무작위로 선택
+	let thirdMember: Participant | null = null;
+	if (shuffled.length % 2 === 1) {
+		const randomIndex = Math.floor(Math.random() * shuffled.length);
+		thirdMember = shuffled[randomIndex];
+		shuffled = [
+			...shuffled.slice(0, randomIndex),
+			...shuffled.slice(randomIndex + 1),
+		];
+	}
+
 	let attempts = 0;
 	const maxAttempts = 100;
 
@@ -79,9 +91,10 @@ export function createMatches(
 		attempts = 0;
 	}
 
-	// 홀수 처리: 마지막 사람을 마지막 조에 추가
-	if (shuffled.length === 1 && pairs.length > 0) {
-		pairs[pairs.length - 1].push(shuffled[0]);
+	// 3인조 후보를 무작위 조에 추가
+	if (thirdMember && pairs.length > 0) {
+		const randomPairIndex = Math.floor(Math.random() * pairs.length);
+		pairs[randomPairIndex].push(thirdMember);
 	}
 
 	return pairs;
