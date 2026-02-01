@@ -41,6 +41,10 @@ jobs:
           DISCORD_ROLE_ID: ${{ vars.DISCORD_ROLE_ID }}
         run: bun run match
 
+      - name: Format generated files
+        if: steps.check-week.outputs.skip == 'false' || github.event_name == 'workflow_dispatch'
+        run: bun run format
+
       - name: Create Pull Request
         if: steps.check-week.outputs.skip == 'false' || github.event_name == 'workflow_dispatch'
         env:
