@@ -4,6 +4,7 @@
 
 ## 기능
 
+- `/coffee join` / `/coffee leave` 슬래시 명령어로 참여/탈퇴
 - Discord Role 기반 참여자 자동 조회
 - 중복 방지 알고리즘으로 매칭 생성 (최근 4회 이력 확인)
 - Discord Webhook으로 매칭 결과 발표
@@ -57,9 +58,10 @@ bun install
 1. Bot 메뉴 > Privileged Gateway Intents
 2. **SERVER MEMBERS INTENT** 활성화 (필수)
 3. OAuth2 > URL Generator에서 권한 설정:
-   - Scopes: `bot`
-   - Bot Permissions: `Read Messages/View Channels`
+   - Scopes: `bot`, `applications.commands`
+   - Bot Permissions: `Read Messages/View Channels`, `Manage Roles`
 4. 생성된 URL로 서버에 봇 초대
+5. **중요**: 서버 설정 > 역할에서 봇 역할이 커피챗 Role보다 **위에** 위치해야 합니다
 
 ### Webhook 생성
 
@@ -235,8 +237,7 @@ B-D 점수: 만남0회(1.0×0.6) + 신규-신규(0.3×0.4) = 0.72
 | 현재 제약사항 | 개선 방향 |
 |-------------|----------|
 | JSON 파일 기반 저장 (동시성 제어 없음, 스케일링 한계) | PostgreSQL/MongoDB로 마이그레이션 |
-| GitHub Actions 실행 (실시간 명령어 처리 불가, 주기 변경 시 코드 수정 필요) | 상시 실행 봇 + 설정 관리 시스템 |
-| Role 수동 관리 (사용자가 직접 참여/탈퇴 불가) | 슬래시 명령어로 자동화 |
+| GitHub Actions 실행 (매칭 주기 변경 시 코드 수정 필요) | 설정 관리 시스템 |
 
 ## 개발
 
@@ -252,6 +253,31 @@ bun run format
 
 # 타입 체크
 bun run typecheck
+
+# Worker 로컬 개발
+bun run worker:dev
+
+# Worker 배포
+bun run worker:deploy
+
+# 슬래시 명령어 등록
+bun run worker:register
+```
+
+### Worker (슬래시 명령어)
+
+Worker는 `worker/` 디렉토리에 위치하며, Cloudflare Workers로 배포됩니다.
+
+```bash
+# 초기 설정
+cd worker && bun install
+
+# 환경변수 설정
+# 1. worker/wrangler.jsonc의 vars에 공개 변수 설정
+# 2. worker/.dev.vars에 DISCORD_BOT_TOKEN 설정 (로컬 개발용)
+# 3. wrangler secret put DISCORD_BOT_TOKEN (프로덕션용)
+
+# 배포 후 Discord Developer Portal에서 Interactions Endpoint URL 설정
 ```
 
 ## 라이선스

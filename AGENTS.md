@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-디스코드 서버 멤버들을 자동으로 매칭하여 커피챗(1:1 대화)을 연결해주는 봇입니다. GitHub Actions로 2주마다 자동 실행되며, Discord Role 기반으로 참여자를 관리합니다.
+디스코드 서버 멤버들을 자동으로 매칭하여 커피챗(1:1 대화)을 연결해주는 봇입니다. GitHub Actions로 2주마다 자동 실행되며, Discord Role 기반으로 참여자를 관리합니다. `/coffee join`과 `/coffee leave` 슬래시 명령어로 사용자가 직접 참여/탈퇴할 수 있으며, Cloudflare Workers로 서버리스 처리됩니다.
 
 ## Development Commands
 
@@ -23,17 +23,33 @@ bun run lint
 
 # 코드 포맷팅
 bun run format
+
+# Worker 로컬 개발
+bun run worker:dev
+
+# Worker 배포
+bun run worker:deploy
+
+# 슬래시 명령어 등록
+bun run worker:register
 ```
 
 ## Architecture
 
-### 실행 흐름 (src/index.ts)
+### 매칭 실행 흐름 (src/index.ts)
 
 1. **참여자 조회** (`discord.ts`) - Discord API로 특정 Role을 가진 멤버 목록 가져오기
 2. **매칭 이력 로드** (`matcher.ts`) - `data/history.json`에서 과거 매칭 기록 로드
 3. **매칭 생성** (`matcher.ts`) - Fisher-Yates 셔플 + 중복 방지 알고리즘
 4. **이력 저장** (`matcher.ts`) - 새로운 매칭을 history.json에 추가
 5. **Discord 발표** (`webhook.ts`) - Webhook으로 매칭 결과 채널에 공지
+
+### 슬래시 명령어 처리 흐름 (worker/src/index.ts)
+
+1. **서명 검증** (`verify.ts`) - Discord 요청의 Ed25519 서명 검증
+2. **PING/PONG** - Discord 연결 확인 응답
+3. **명령어 라우팅** (`handlers.ts`) - `/coffee join` 또는 `/coffee leave` 처리
+4. **Role 관리** (`discord-api.ts`) - Discord REST API로 Role 추가/제거
 
 ### 핵심 알고리즘 (matcher.ts)
 
@@ -43,15 +59,20 @@ bun run format
 
 ### 환경변수
 
-**Secrets** (GitHub Secrets에 저장):
+**매칭 (GitHub Actions)**:
 
-- `DISCORD_BOT_TOKEN` - Discord Bot 토큰 (Role 멤버 조회용)
-- `DISCORD_WEBHOOK_URL` - 매칭 결과 발표용 Webhook URL
+- `DISCORD_BOT_TOKEN` - Discord Bot 토큰 (Secret)
+- `DISCORD_WEBHOOK_URL` - 매칭 결과 발표용 Webhook URL (Secret)
+- `DISCORD_SERVER_ID` - 디스코드 서버 ID (Variable)
+- `DISCORD_ROLE_ID` - 커피챗 참여자 Role ID (Variable)
 
-**Variables** (GitHub Variables에 저장):
+**Worker (Cloudflare)**:
 
-- `DISCORD_SERVER_ID` - 디스코드 서버 ID
-- `DISCORD_ROLE_ID` - 커피챗 참여자 Role ID
+- `DISCORD_PUBLIC_KEY` - 서명 검증용 공개키 (wrangler.jsonc var)
+- `DISCORD_APPLICATION_ID` - Discord 앱 ID (wrangler.jsonc var)
+- `DISCORD_SERVER_ID` - 서버 ID (wrangler.jsonc var)
+- `DISCORD_ROLE_ID` - 커피챗 Role ID (wrangler.jsonc var)
+- `DISCORD_BOT_TOKEN` - Bot 토큰 (wrangler secret)
 
 ### GitHub Actions 자동화
 
