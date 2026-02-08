@@ -3,10 +3,12 @@ node_modules/
 
 # Build output
 dist/
+.wrangler/
 
 # Environment variables
 .env
 .env.local
+.dev.vars
 
 # OS files
 .DS_Store
