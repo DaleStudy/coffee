@@ -1,0 +1,20 @@
+{
+	"name": "coffee-worker",
+	"version": "1.0.0",
+	"description": "커피챗 봇 슬래시 명령어 핸들러 (Cloudflare Worker)",
+	"type": "module",
+	"scripts": {
+		"dev": "wrangler dev",
+		"deploy": "wrangler deploy",
+		"register-commands": "bun run scripts/register-commands.ts",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"discord-api-types": "^0.37.119"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250205.0",
+		"wrangler": "^4.6.0",
+		"typescript": "^5.9.3"
+	}
+}
