@@ -1,0 +1,10 @@
+[
+	{
+		"name": "coffee",
+		"displayName": "커피챗",
+		"roleId": "1465029948887531533",
+		"webhookEnvKey": "DISCORD_WEBHOOK_URL_COFFEE",
+		"schedule": "biweekly",
+		"groupSize": 2
+	}
+]

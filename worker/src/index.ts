@@ -1,9 +1,10 @@
 import {
+	type APIApplicationCommandAutocompleteInteraction,
 	type APIChatInputApplicationCommandInteraction,
 	InteractionResponseType,
 	InteractionType,
 } from "discord-api-types/v10";
-import { handleCommand } from "./handlers.ts";
+import { handleAutocomplete, handleCommand } from "./handlers.ts";
 import { verifyRequest } from "./verify.ts";
 
 interface Env {
@@ -11,7 +12,6 @@ interface Env {
 	DISCORD_APPLICATION_ID: string;
 	DISCORD_BOT_TOKEN: string;
 	DISCORD_SERVER_ID: string;
-	DISCORD_ROLE_ID: string;
 }
 
 export default {
@@ -41,6 +41,12 @@ export default {
 
 		if (interaction.type === InteractionType.Ping) {
 			return Response.json({ type: InteractionResponseType.Pong });
+		}
+
+		if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
+			return handleAutocomplete(
+				interaction as APIApplicationCommandAutocompleteInteraction,
+			);
 		}
 
 		if (interaction.type === InteractionType.ApplicationCommand) {

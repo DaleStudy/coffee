@@ -1,19 +1,8 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 import type { Participant } from "./types.ts";
+import { announceMatches } from "./webhook.ts";
 
 describe("announceMatches", () => {
-	const originalFetch = globalThis.fetch;
-	const originalEnv = process.env.DISCORD_WEBHOOK_URL;
-
-	beforeEach(() => {
-		process.env.DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/test";
-	});
-
-	afterEach(() => {
-		globalThis.fetch = originalFetch;
-		process.env.DISCORD_WEBHOOK_URL = originalEnv;
-	});
-
 	test("올바른 형식으로 웹훅을 호출한다", async () => {
 		let capturedBody: string | undefined;
 
@@ -22,17 +11,14 @@ describe("announceMatches", () => {
 			return new Response(null, { status: 200 });
 		}) as unknown as typeof fetch;
 
-		// 모듈을 동적으로 import해서 mock된 환경변수 사용
-		const { announceMatches } = await import("./webhook.ts");
-
-		const pairs: Participant[][] = [
+		const groups: Participant[][] = [
 			[
 				{ id: "123", username: "Alice" },
 				{ id: "456", username: "Bob" },
 			],
 		];
 
-		await announceMatches(pairs);
+		await announceMatches("https://discord.com/api/webhooks/test", groups);
 
 		expect(capturedBody).toBeDefined();
 		const parsed = JSON.parse(capturedBody!);
@@ -49,9 +35,7 @@ describe("announceMatches", () => {
 			return new Response(null, { status: 200 });
 		}) as unknown as typeof fetch;
 
-		const { announceMatches } = await import("./webhook.ts");
-
-		const pairs: Participant[][] = [
+		const groups: Participant[][] = [
 			[
 				{ id: "1", username: "A" },
 				{ id: "2", username: "B" },
@@ -59,7 +43,7 @@ describe("announceMatches", () => {
 			],
 		];
 
-		await announceMatches(pairs);
+		await announceMatches("https://discord.com/api/webhooks/test", groups);
 
 		expect(capturedBody).toBeDefined();
 		const parsed = JSON.parse(capturedBody!);
@@ -71,15 +55,65 @@ describe("announceMatches", () => {
 			return new Response(null, { status: 500 });
 		}) as unknown as typeof fetch;
 
-		const { announceMatches } = await import("./webhook.ts");
-
-		const pairs: Participant[][] = [
+		const groups: Participant[][] = [
 			[
 				{ id: "1", username: "A" },
 				{ id: "2", username: "B" },
 			],
 		];
 
-		expect(announceMatches(pairs)).rejects.toThrow("Webhook 전송 실패: 500");
+		expect(
+			announceMatches("https://discord.com/api/webhooks/test", groups),
+		).rejects.toThrow("Webhook 전송 실패: 500");
+	});
+
+	test("displayName이 있으면 메시지에 포함된다", async () => {
+		let capturedBody: string | undefined;
+
+		globalThis.fetch = mock(async (_url: string, options: RequestInit) => {
+			capturedBody = options.body as string;
+			return new Response(null, { status: 200 });
+		}) as unknown as typeof fetch;
+
+		const groups: Participant[][] = [
+			[
+				{ id: "1", username: "A" },
+				{ id: "2", username: "B" },
+			],
+		];
+
+		await announceMatches(
+			"https://discord.com/api/webhooks/test",
+			groups,
+			"커피챗",
+		);
+
+		expect(capturedBody).toBeDefined();
+		const parsed = JSON.parse(capturedBody!);
+		expect(parsed.content).toContain("이번 커피챗 매칭 발표!");
+	});
+
+	test("4인조일 때 4인조 표시가 추가된다", async () => {
+		let capturedBody: string | undefined;
+
+		globalThis.fetch = mock(async (_url: string, options: RequestInit) => {
+			capturedBody = options.body as string;
+			return new Response(null, { status: 200 });
+		}) as unknown as typeof fetch;
+
+		const groups: Participant[][] = [
+			[
+				{ id: "1", username: "A" },
+				{ id: "2", username: "B" },
+				{ id: "3", username: "C" },
+				{ id: "4", username: "D" },
+			],
+		];
+
+		await announceMatches("https://discord.com/api/webhooks/test", groups);
+
+		expect(capturedBody).toBeDefined();
+		const parsed = JSON.parse(capturedBody!);
+		expect(parsed.content).toContain("(4인조)");
 	});
 });

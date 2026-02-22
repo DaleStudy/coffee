@@ -22,31 +22,17 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Check if this is a matching week
-        id: check-week
-        run: |
-          WEEK_NUM=$(date +%V)
-          if [ $((WEEK_NUM % 2)) -eq 0 ]; then
-            echo "skip=false" >> $GITHUB_OUTPUT
-          else
-            echo "skip=true" >> $GITHUB_OUTPUT
-          fi
-
       - name: Run matching
-        if: steps.check-week.outputs.skip == 'false' || github.event_name == 'workflow_dispatch'
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_URL_COFFEE: ${{ secrets.DISCORD_WEBHOOK_URL_COFFEE }}
           DISCORD_SERVER_ID: ${{ vars.DISCORD_SERVER_ID }}
-          DISCORD_ROLE_ID: ${{ vars.DISCORD_ROLE_ID }}
         run: bun run match
 
       - name: Format generated files
-        if: steps.check-week.outputs.skip == 'false' || github.event_name == 'workflow_dispatch'
         run: bun run format
 
       - name: Create Pull Request
-        if: steps.check-week.outputs.skip == 'false' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -54,7 +40,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           BRANCH_NAME="chore/update-match-history-$(date +%Y-%m-%d)-${{ github.run_id }}"
           git checkout -b "$BRANCH_NAME"
-          git add data/history.json
+          git add data/
           git diff --staged --quiet && exit 0
           git commit -m "chore: update match history"
           git push -u origin "$BRANCH_NAME"

@@ -21,4 +21,16 @@ export interface ExperienceStats {
 
 export interface MatchingOptions {
 	temperature?: number; // 기본 0.5
+	groupSize?: number; // 기본 2
+}
+
+export type MatchSchedule = "weekly" | "biweekly" | "monthly";
+
+export interface RoleConfig {
+	name: string; // slug (디렉토리명, autocomplete value)
+	displayName: string; // Discord에 표시할 이름
+	roleId: string; // Discord 역할 ID
+	webhookEnvKey: string; // 웹훅 URL 환경변수 이름
+	schedule: MatchSchedule; // 매칭 주기
+	groupSize: number; // 그룹당 인원 수 (기본 2)
 }

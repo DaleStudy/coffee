@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+	buildGroupCandidates,
 	calculateExperienceStats,
 	calculatePairScore,
 	createMatches,
@@ -123,6 +124,70 @@ describe("createMatches", () => {
 
 		expect(pairs).toHaveLength(1);
 		expect(pairs[0]).toHaveLength(3);
+	});
+});
+
+describe("createMatches with groupSize", () => {
+	test("groupSize=3일 때 3인 조로 매칭된다", () => {
+		const participants = createParticipants(6);
+		const history: MatchHistory = { matches: [] };
+
+		const groups = createMatches(participants, history, { groupSize: 3 });
+
+		expect(groups).toHaveLength(2);
+		expect(groups.every((g) => g.length === 3)).toBe(true);
+	});
+
+	test("groupSize=3이고 7명이면 3인조 2개 + 나머지 1명이 배치된다", () => {
+		const participants = createParticipants(7);
+		const history: MatchHistory = { matches: [] };
+
+		const groups = createMatches(participants, history, { groupSize: 3 });
+
+		expect(groups).toHaveLength(2);
+		const lengths = groups.map((g) => g.length).sort();
+		expect(lengths).toEqual([3, 4]);
+	});
+
+	test("groupSize=3이고 8명이면 나머지 2명이 배치된다", () => {
+		const participants = createParticipants(8);
+		const history: MatchHistory = { matches: [] };
+
+		const groups = createMatches(participants, history, { groupSize: 3 });
+
+		expect(groups).toHaveLength(2);
+		const total = groups.reduce((sum, g) => sum + g.length, 0);
+		expect(total).toBe(8);
+	});
+
+	test("groupSize=4일 때 4인 조로 매칭된다", () => {
+		const participants = createParticipants(8);
+		const history: MatchHistory = { matches: [] };
+
+		const groups = createMatches(participants, history, { groupSize: 4 });
+
+		expect(groups).toHaveLength(2);
+		expect(groups.every((g) => g.length === 4)).toBe(true);
+	});
+
+	test("groupSize보다 인원이 적으면 한 그룹으로", () => {
+		const participants = createParticipants(2);
+		const history: MatchHistory = { matches: [] };
+
+		const groups = createMatches(participants, history, { groupSize: 3 });
+
+		expect(groups).toHaveLength(1);
+		expect(groups[0]).toHaveLength(2);
+	});
+
+	test("groupSize=3이고 모든 참여자가 매칭에 포함된다", () => {
+		const participants = createParticipants(9);
+		const history: MatchHistory = { matches: [] };
+
+		const groups = createMatches(participants, history, { groupSize: 3 });
+		const matchedIds = groups.flat().map((p) => p.id);
+
+		expect(matchedIds.sort()).toEqual(participants.map((p) => p.id).sort());
 	});
 });
 
@@ -302,6 +367,32 @@ describe("calculatePairScore", () => {
 	});
 });
 
+describe("buildGroupCandidates", () => {
+	test("groupSize=2일 때 모든 페어를 생성한다", () => {
+		const participants = createParticipants(3);
+		const history: MatchHistory = { matches: [] };
+		const stats = calculateExperienceStats(participants, history);
+
+		const candidates = buildGroupCandidates(participants, history, stats, 2);
+
+		// C(3,2) = 3
+		expect(candidates).toHaveLength(3);
+		expect(candidates.every((c) => c.ids.length === 2)).toBe(true);
+	});
+
+	test("groupSize=3일 때 모든 3인 조합을 생성한다", () => {
+		const participants = createParticipants(4);
+		const history: MatchHistory = { matches: [] };
+		const stats = calculateExperienceStats(participants, history);
+
+		const candidates = buildGroupCandidates(participants, history, stats, 3);
+
+		// C(4,3) = 4
+		expect(candidates).toHaveLength(4);
+		expect(candidates.every((c) => c.ids.length === 3)).toBe(true);
+	});
+});
+
 describe("scoresToProbabilities", () => {
 	test("빈 배열은 빈 배열 반환", () => {
 		expect(scoresToProbabilities([])).toEqual([]);
@@ -309,8 +400,8 @@ describe("scoresToProbabilities", () => {
 
 	test("높은 점수가 높은 확률을 갖는다", () => {
 		const candidates = [
-			{ ids: ["a", "b"] as [string, string], score: 1.0 },
-			{ ids: ["c", "d"] as [string, string], score: 0.5 },
+			{ ids: ["a", "b"], score: 1.0 },
+			{ ids: ["c", "d"], score: 0.5 },
 		];
 
 		const probs = scoresToProbabilities(candidates, 0.5);
@@ -320,9 +411,9 @@ describe("scoresToProbabilities", () => {
 
 	test("확률의 합은 1이다", () => {
 		const candidates = [
-			{ ids: ["a", "b"] as [string, string], score: 0.8 },
-			{ ids: ["c", "d"] as [string, string], score: 0.6 },
-			{ ids: ["e", "f"] as [string, string], score: 0.4 },
+			{ ids: ["a", "b"], score: 0.8 },
+			{ ids: ["c", "d"], score: 0.6 },
+			{ ids: ["e", "f"], score: 0.4 },
 		];
 
 		const probs = scoresToProbabilities(candidates, 0.5);
