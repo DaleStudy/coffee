@@ -6,13 +6,8 @@ import {
 	MessageFlags,
 } from "discord-api-types/v10";
 import rolesConfig from "../../data/roles.json";
+import type { RoleConfig } from "../../src/types.ts";
 import { addRole, removeRole } from "./discord-api.ts";
-
-interface RoleConfig {
-	name: string;
-	displayName: string;
-	roleId: string;
-}
 
 interface Env {
 	DISCORD_BOT_TOKEN: string;
