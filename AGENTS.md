@@ -83,6 +83,80 @@ bun run worker:register
 - **수동 실행**: `workflow_dispatch`로 언제든지 수동 트리거 가능
 - **이력 관리**: 매칭 후 `data/history.json` 변경사항을 PR로 자동 생성
 
+## Worker 배포
+
+### 배포하기
+
+```bash
+# worker 디렉토리에서 실행
+cd worker
+
+# Cloudflare 로그인 (계정 전환 시)
+bunx wrangler login
+
+# 배포
+bunx wrangler deploy
+
+# 슬래시 명령어 등록
+bun run register-commands
+```
+
+배포 URL: `https://coffee.dalestudy.workers.dev`
+
+### 새로운 Cloudflare 계정에 세팅하기
+
+1. **Cloudflare 로그인**
+
+   ```bash
+   bunx wrangler login
+   ```
+
+2. **workers.dev 서브도메인 등록** (신규 계정인 경우)
+
+   Cloudflare 대시보드 → Compute → Workers에서 서브도메인을 설정하거나, API로 등록:
+
+   ```bash
+   # 현재 서브도메인 확인
+   curl -s "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/workers/subdomain" \
+     -H "Authorization: Bearer <TOKEN>"
+
+   # 서브도메인 변경 (기존 것 삭제 후 재등록)
+   curl -s -X DELETE "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/workers/subdomain" \
+     -H "Authorization: Bearer <TOKEN>"
+   curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/workers/subdomain" \
+     -H "Authorization: Bearer <TOKEN>" \
+     -H "Content-Type: application/json" \
+     --data '{"subdomain": "원하는이름"}'
+   ```
+
+3. **Worker 배포**
+
+   ```bash
+   cd worker && bunx wrangler deploy
+   ```
+
+4. **Bot 토큰 등록**
+
+   ```bash
+   cd worker && bunx wrangler secret put DISCORD_BOT_TOKEN
+   ```
+
+5. **슬래시 명령어 등록**
+
+   ```bash
+   cd worker && bun run register-commands
+   ```
+
+6. **Discord Interactions Endpoint URL 설정**
+
+   [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택 → General Information → Interactions Endpoint URL에 배포된 Worker URL 입력 후 저장
+
+### 참고사항
+
+- `wrangler.jsonc`의 `vars`에는 공개 가능한 값만 포함 (`DISCORD_PUBLIC_KEY`, `DISCORD_APPLICATION_ID`, `DISCORD_SERVER_ID`, `DISCORD_ROLE_ID`)
+- `DISCORD_BOT_TOKEN`은 반드시 `wrangler secret`으로 관리
+- Cloudflare 계정의 이메일 인증이 완료되어야 Worker 배포 가능
+
 ## Code Style
 
 - **Runtime**: Bun (TypeScript 네이티브 지원)

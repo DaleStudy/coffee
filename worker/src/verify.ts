@@ -6,20 +6,24 @@ export async function verifyRequest(
 	timestamp: string,
 	publicKey: string,
 ): Promise<boolean> {
-	const key = await crypto.subtle.importKey(
-		"raw",
-		hexToUint8Array(publicKey),
-		{ name: "Ed25519", namedCurve: "Ed25519" },
-		false,
-		["verify"],
-	);
+	try {
+		const key = await crypto.subtle.importKey(
+			"raw",
+			hexToUint8Array(publicKey),
+			"Ed25519",
+			false,
+			["verify"],
+		);
 
-	return crypto.subtle.verify(
-		"Ed25519",
-		key,
-		hexToUint8Array(signature),
-		ENCODER.encode(timestamp + body),
-	);
+		return await crypto.subtle.verify(
+			"Ed25519",
+			key,
+			hexToUint8Array(signature),
+			ENCODER.encode(timestamp + body),
+		);
+	} catch {
+		return false;
+	}
 }
 
 function hexToUint8Array(hex: string): Uint8Array {
