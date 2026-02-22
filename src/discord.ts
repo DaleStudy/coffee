@@ -9,11 +9,10 @@ function getEnvOrThrow(key: string): string {
 	return value;
 }
 
-const DISCORD_BOT_TOKEN = getEnvOrThrow("DISCORD_BOT_TOKEN");
-const SERVER_ID = getEnvOrThrow("DISCORD_SERVER_ID");
-const ROLE_ID = getEnvOrThrow("DISCORD_ROLE_ID");
+export async function getParticipants(roleId: string): Promise<Participant[]> {
+	const DISCORD_BOT_TOKEN = getEnvOrThrow("DISCORD_BOT_TOKEN");
+	const SERVER_ID = getEnvOrThrow("DISCORD_SERVER_ID");
 
-export async function getParticipants(): Promise<Participant[]> {
 	const client = new Client({
 		intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
 	});
@@ -25,7 +24,7 @@ export async function getParticipants(): Promise<Participant[]> {
 		const members = await guild.members.fetch();
 
 		const participants = members
-			.filter((member) => member.roles.cache.has(ROLE_ID) && !member.user.bot)
+			.filter((member) => member.roles.cache.has(roleId) && !member.user.bot)
 			.map((member) => ({
 				id: member.user.id,
 				username: member.user.username,
