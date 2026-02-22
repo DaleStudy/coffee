@@ -302,7 +302,7 @@ export function createMatches(
 	}
 
 	// 남은 참여자 ID 집합
-	let remaining = new Set(participants.map((p) => p.id));
+	const remaining = new Set(participants.map((p) => p.id));
 
 	// 홀수일 때 3인조 후보 먼저 선택 (나중에 배치)
 	let thirdMemberId: string | null = null;

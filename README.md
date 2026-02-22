@@ -264,20 +264,43 @@ bun run worker:deploy
 bun run worker:register
 ```
 
-### Worker (슬래시 명령어)
+### Worker 배포 (슬래시 명령어)
 
-Worker는 `worker/` 디렉토리에 위치하며, Cloudflare Workers로 배포됩니다.
+`/coffee join`, `/coffee leave` 명령어는 Cloudflare Workers로 처리됩니다.
+
+#### 최초 배포
 
 ```bash
-# 초기 설정
+# 1. 의존성 설치
 cd worker && bun install
 
-# 환경변수 설정
-# 1. worker/wrangler.jsonc의 vars에 공개 변수 설정
-# 2. worker/.dev.vars에 DISCORD_BOT_TOKEN 설정 (로컬 개발용)
-# 3. wrangler secret put DISCORD_BOT_TOKEN (프로덕션용)
+# 2. Cloudflare 로그인
+bunx wrangler login
 
-# 배포 후 Discord Developer Portal에서 Interactions Endpoint URL 설정
+# 3. Worker 배포
+bunx wrangler deploy
+
+# 4. Bot 토큰 등록 (프롬프트에 토큰 입력)
+bunx wrangler secret put DISCORD_BOT_TOKEN
+
+# 5. 슬래시 명령어 등록
+bun run register-commands
+```
+
+마지막으로 [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택 → General Information → **Interactions Endpoint URL**에 배포된 URL을 입력합니다.
+
+> 현재 배포 URL: `https://coffee.dalestudy.workers.dev`
+
+#### 로컬 개발
+
+```bash
+cd worker
+
+# .dev.vars 파일에 DISCORD_BOT_TOKEN 설정
+echo 'DISCORD_BOT_TOKEN=your-token' > .dev.vars
+
+# 로컬 서버 시작
+bun run dev
 ```
 
 ## 라이선스
