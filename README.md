@@ -69,6 +69,16 @@ bun install
 2. "웹후크 만들기" 클릭
 3. Webhook URL 복사 → `DISCORD_WEBHOOK_URL`로 사용
 
+### Interactions Endpoint URL 설정
+
+슬래시 명령어(`/coffee join`, `/coffee leave`)를 사용하려면 Worker 배포 후 Endpoint URL을 등록해야 합니다.
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택
+2. General Information → **Interactions Endpoint URL**에 Worker URL 입력
+3. "Save Changes" 클릭 (Discord가 자동으로 PING 검증을 수행)
+
+> 현재 URL: `https://coffee.dalestudy.workers.dev`
+
 ### ID 확인 방법
 
 1. Discord 설정 > 고급 > 개발자 모드 활성화
@@ -290,6 +300,19 @@ bun run register-commands
 마지막으로 [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택 → General Information → **Interactions Endpoint URL**에 배포된 URL을 입력합니다.
 
 > 현재 배포 URL: `https://coffee.dalestudy.workers.dev`
+
+#### 멤버 추가 (Cloudflare 계정)
+
+새로운 팀 멤버가 Worker를 배포하거나 관리하려면 Cloudflare 계정에 멤버로 추가해야 합니다.
+
+1. [Cloudflare 대시보드](https://dash.cloudflare.com) 로그인
+2. Manage account → Members
+3. **Invite** 클릭 → 이메일 주소 입력
+4. 역할 선택:
+   - **Administrator**: 모든 권한 (배포, secret 관리 등)
+   - **Worker Admin**: Worker 관련 권한만
+
+초대받은 멤버는 이메일의 초대 링크를 클릭하여 수락하면 됩니다.
 
 #### 로컬 개발
 
