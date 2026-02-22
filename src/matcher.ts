@@ -310,22 +310,10 @@ export function createMatches(
 ): Participant[][] {
 	const { temperature = 0.5, groupSize = 2 } = options;
 
-	// 엣지 케이스
-	if (participants.length === 0) return [];
-	if (participants.length < groupSize) {
-		// groupSize 미만이면 매칭 불가, 단 2명 이상이면 한 그룹으로
-		if (participants.length >= 2) return [participants];
-		return [];
-	}
-	// 정확히 groupSize명이면 한 그룹
-	if (participants.length === groupSize) return [participants];
-	// groupSize+1명 이하로 두 그룹을 만들 수 없으면 전체 한 그룹
-	if (
-		participants.length < groupSize * 2 &&
-		participants.length <= groupSize + groupSize - 1
-	) {
-		return [participants];
-	}
+	// 2명 미만이면 매칭 불가
+	if (participants.length < 2) return [];
+	// groupSize * 2 미만이면 한 그룹으로
+	if (participants.length < groupSize * 2) return [participants];
 
 	const recentGroups = getRecentGroups(history);
 	const stats = calculateExperienceStats(participants, history);
