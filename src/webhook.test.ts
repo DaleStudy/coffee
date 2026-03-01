@@ -2,14 +2,21 @@ import { describe, expect, mock, test } from "bun:test";
 import type { Participant } from "./types.ts";
 import { announceMatches } from "./webhook.ts";
 
-describe("announceMatches", () => {
-	test("올바른 형식으로 웹훅을 호출한다", async () => {
-		let capturedBody: string | undefined;
+const TEST_CHANNEL_ID = "123456789";
+const TEST_BOT_TOKEN = "test-bot-token";
 
-		globalThis.fetch = mock(async (_url: string, options: RequestInit) => {
-			capturedBody = options.body as string;
-			return new Response(null, { status: 200 });
-		}) as unknown as typeof fetch;
+describe("announceMatches", () => {
+	test("올바른 형식으로 Discord API를 호출한다", async () => {
+		let capturedUrl: string | undefined;
+		let capturedOptions: RequestInit | undefined;
+
+		globalThis.fetch = mock(
+			async (url: string | URL | Request, options: RequestInit) => {
+				capturedUrl = url.toString();
+				capturedOptions = options;
+				return new Response(null, { status: 200 });
+			},
+		) as unknown as typeof fetch;
 
 		const groups: Participant[][] = [
 			[
@@ -18,10 +25,13 @@ describe("announceMatches", () => {
 			],
 		];
 
-		await announceMatches("https://discord.com/api/webhooks/test", groups);
+		await announceMatches(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups);
 
-		expect(capturedBody).toBeDefined();
-		const parsed = JSON.parse(capturedBody!);
+		expect(capturedUrl).toContain(`/channels/${TEST_CHANNEL_ID}/messages`);
+		expect(capturedOptions!.headers).toMatchObject({
+			Authorization: `Bot ${TEST_BOT_TOKEN}`,
+		});
+		const parsed = JSON.parse(capturedOptions!.body as string);
 		expect(parsed.content).toContain("<@123>");
 		expect(parsed.content).toContain("<@456>");
 		expect(parsed.content).toContain("↔");
@@ -43,14 +53,14 @@ describe("announceMatches", () => {
 			],
 		];
 
-		await announceMatches("https://discord.com/api/webhooks/test", groups);
+		await announceMatches(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups);
 
 		expect(capturedBody).toBeDefined();
 		const parsed = JSON.parse(capturedBody!);
 		expect(parsed.content).toContain("(3인조)");
 	});
 
-	test("웹훅 실패 시 에러를 던진다", async () => {
+	test("API 호출 실패 시 에러를 던진다", async () => {
 		globalThis.fetch = mock(async () => {
 			return new Response(null, { status: 500 });
 		}) as unknown as typeof fetch;
@@ -63,8 +73,8 @@ describe("announceMatches", () => {
 		];
 
 		expect(
-			announceMatches("https://discord.com/api/webhooks/test", groups),
-		).rejects.toThrow("Webhook 전송 실패: 500");
+			announceMatches(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups),
+		).rejects.toThrow("메시지 전송 실패: 500");
 	});
 
 	test("displayName이 있으면 메시지에 포함된다", async () => {
@@ -82,11 +92,7 @@ describe("announceMatches", () => {
 			],
 		];
 
-		await announceMatches(
-			"https://discord.com/api/webhooks/test",
-			groups,
-			"커피챗",
-		);
+		await announceMatches(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups, "커피챗");
 
 		expect(capturedBody).toBeDefined();
 		const parsed = JSON.parse(capturedBody!);
@@ -110,7 +116,7 @@ describe("announceMatches", () => {
 			],
 		];
 
-		await announceMatches("https://discord.com/api/webhooks/test", groups);
+		await announceMatches(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups);
 
 		expect(capturedBody).toBeDefined();
 		const parsed = JSON.parse(capturedBody!);

@@ -7,25 +7,30 @@ import { announceMatches } from "./webhook.ts";
 
 const roles = rolesConfig as RoleConfig[];
 
+function getEnvOrThrow(key: string): string {
+	const value = process.env[key];
+	if (!value) {
+		throw new Error(`환경변수 ${key}가 설정되지 않았습니다.`);
+	}
+	return value;
+}
+
 async function main() {
+	const botToken = getEnvOrThrow("DISCORD_BOT_TOKEN");
+	const forceRun = process.env.FORCE_RUN === "true";
+
 	console.log("☕ 커피챗 매칭을 시작합니다...\n");
+	if (forceRun) {
+		console.log("⚡ 수동 실행: 스케줄 체크를 건너뜁니다.\n");
+	}
 
 	for (const role of roles) {
 		console.log(`--- [${role.displayName}] 역할 처리 중 ---`);
 
-		// 스케줄 체크
-		if (!shouldRunToday(role.schedule)) {
+		// 스케줄 체크 (수동 실행 시 건너뜀)
+		if (!forceRun && !shouldRunToday(role.schedule)) {
 			console.log(
 				`${role.displayName}: 이번 주는 매칭 주가 아닙니다. 건너뜁니다.`,
-			);
-			continue;
-		}
-
-		// 웹훅 URL 확인
-		const webhookUrl = process.env[role.webhookEnvKey];
-		if (!webhookUrl) {
-			console.error(
-				`환경변수 ${role.webhookEnvKey}가 설정되지 않았습니다. ${role.displayName} 건너뜁니다.`,
 			);
 			continue;
 		}
@@ -63,7 +68,7 @@ async function main() {
 		await saveHistory(role.name, history, groups);
 
 		// 5. Discord에 발표
-		await announceMatches(webhookUrl, groups, role.displayName);
+		await announceMatches(role.channelId, botToken, groups, role.displayName);
 
 		console.log(`${role.displayName}: ✅ 매칭 완료!`);
 	}
