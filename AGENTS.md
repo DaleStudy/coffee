@@ -38,11 +38,12 @@ bun run worker:register
 
 ### 매칭 실행 흐름 (src/index.ts)
 
-1. **참여자 조회** (`discord.ts`) - Discord API로 특정 Role을 가진 멤버 목록 가져오기
-2. **매칭 이력 로드** (`matcher.ts`) - `data/history.json`에서 과거 매칭 기록 로드
-3. **매칭 생성** (`matcher.ts`) - Fisher-Yates 셔플 + 중복 방지 알고리즘
-4. **이력 저장** (`matcher.ts`) - 새로운 매칭을 history.json에 추가
-5. **Discord 발표** (`webhook.ts`) - Bot API로 매칭 결과 채널에 공지
+1. **스케줄 체크** (`schedule.ts`) - 역할별 스케줄에 따라 매칭 실행 여부 판단 (수동 트리거 시 건너뜀)
+2. **참여자 조회** (`discord.ts`) - Discord API로 특정 Role을 가진 멤버 목록 가져오기
+3. **매칭 이력 로드** (`matcher.ts`) - `data/history.json`에서 과거 매칭 기록 로드
+4. **매칭 생성** (`matcher.ts`) - Fisher-Yates 셔플 + 중복 방지 알고리즘
+5. **이력 저장** (`matcher.ts`) - 새로운 매칭을 history.json에 추가
+6. **Discord 발표** (`webhook.ts`) - Bot API로 매칭 결과 채널에 공지
 
 ### 슬래시 명령어 처리 흐름 (worker/src/index.ts)
 
@@ -78,7 +79,7 @@ bun run worker:register
 
 - **스케줄**: 매주 월요일 UTC 00:00 (KST 09:00)
 - **격주 실행**: 짝수 주에만 매칭 실행 (홀수 주는 skip)
-- **수동 실행**: `workflow_dispatch`로 언제든지 수동 트리거 가능
+- **수동 실행**: `workflow_dispatch`로 언제든지 수동 트리거 가능 (스케줄 무시, 즉시 매칭)
 - **이력 관리**: 매칭 후 `data/history.json` 변경사항을 PR로 자동 생성
 
 ## Worker 배포
