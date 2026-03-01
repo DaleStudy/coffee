@@ -26,6 +26,7 @@ jobs:
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           DISCORD_SERVER_ID: ${{ vars.DISCORD_SERVER_ID }}
+          FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || '' }}
         run: bun run match
 
       - name: Format generated files

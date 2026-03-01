@@ -17,14 +17,18 @@ function getEnvOrThrow(key: string): string {
 
 async function main() {
 	const botToken = getEnvOrThrow("DISCORD_BOT_TOKEN");
+	const forceRun = process.env.FORCE_RUN === "true";
 
 	console.log("☕ 커피챗 매칭을 시작합니다...\n");
+	if (forceRun) {
+		console.log("⚡ 수동 실행: 스케줄 체크를 건너뜁니다.\n");
+	}
 
 	for (const role of roles) {
 		console.log(`--- [${role.displayName}] 역할 처리 중 ---`);
 
-		// 스케줄 체크
-		if (!shouldRunToday(role.schedule)) {
+		// 스케줄 체크 (수동 실행 시 건너뜀)
+		if (!forceRun && !shouldRunToday(role.schedule)) {
 			console.log(
 				`${role.displayName}: 이번 주는 매칭 주가 아닙니다. 건너뜁니다.`,
 			);
