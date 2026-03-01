@@ -25,7 +25,6 @@ jobs:
       - name: Run matching
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-          DISCORD_WEBHOOK_URL_COFFEE: ${{ secrets.DISCORD_WEBHOOK_URL_COFFEE }}
           DISCORD_SERVER_ID: ${{ vars.DISCORD_SERVER_ID }}
         run: bun run match
 

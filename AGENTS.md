@@ -42,7 +42,7 @@ bun run worker:register
 2. **매칭 이력 로드** (`matcher.ts`) - `data/history.json`에서 과거 매칭 기록 로드
 3. **매칭 생성** (`matcher.ts`) - Fisher-Yates 셔플 + 중복 방지 알고리즘
 4. **이력 저장** (`matcher.ts`) - 새로운 매칭을 history.json에 추가
-5. **Discord 발표** (`webhook.ts`) - Webhook으로 매칭 결과 채널에 공지
+5. **Discord 발표** (`webhook.ts`) - Bot API로 매칭 결과 채널에 공지
 
 ### 슬래시 명령어 처리 흐름 (worker/src/index.ts)
 
@@ -62,9 +62,7 @@ bun run worker:register
 **매칭 (GitHub Actions)**:
 
 - `DISCORD_BOT_TOKEN` - Discord Bot 토큰 (Secret)
-- `DISCORD_WEBHOOK_URL` - 매칭 결과 발표용 Webhook URL (Secret)
 - `DISCORD_SERVER_ID` - 디스코드 서버 ID (Variable)
-- `DISCORD_ROLE_ID` - 커피챗 참여자 Role ID (Variable)
 
 **Worker (Cloudflare)**:
 

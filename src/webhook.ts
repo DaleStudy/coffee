@@ -1,7 +1,10 @@
 import type { Participant } from "./types.ts";
 
+const DISCORD_API_BASE = "https://discord.com/api/v10";
+
 export async function announceMatches(
-	webhookUrl: string,
+	channelId: string,
+	botToken: string,
 	groups: Participant[][],
 	displayName?: string,
 ): Promise<void> {
@@ -21,14 +24,20 @@ ${lines.join("\n")}
 
 2주 안에 커피챗을 진행해주세요! ☕`;
 
-	const response = await fetch(webhookUrl, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ content }),
-	});
+	const response = await fetch(
+		`${DISCORD_API_BASE}/channels/${channelId}/messages`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bot ${botToken}`,
+			},
+			body: JSON.stringify({ content }),
+		},
+	);
 
 	if (!response.ok) {
-		throw new Error(`Webhook 전송 실패: ${response.status}`);
+		throw new Error(`메시지 전송 실패: ${response.status}`);
 	}
 
 	console.log("Discord에 매칭 결과 발표 완료");

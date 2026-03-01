@@ -7,7 +7,7 @@
 - `/coffee join` / `/coffee leave` 슬래시 명령어로 참여/탈퇴
 - Discord Role 기반 참여자 자동 조회
 - 중복 방지 알고리즘으로 매칭 생성 (최근 4회 이력 확인)
-- Discord Webhook으로 매칭 결과 발표
+- Discord Bot API로 매칭 결과 발표
 - GitHub Actions를 통한 격주 자동 실행
 - 매칭 이력 자동 PR 생성
 
@@ -30,21 +30,19 @@ bun install
 | 환경변수 | 설명 | 타입 |
 |---------|------|------|
 | `DISCORD_BOT_TOKEN` | Discord Bot 토큰 | Secret |
-| `DISCORD_WEBHOOK_URL` | Discord Webhook URL | Secret |
 | `DISCORD_SERVER_ID` | Discord 서버(Guild) ID | Variable |
-| `DISCORD_ROLE_ID` | 커피챗 참여자 Role ID | Variable |
+
+> 매칭 결과를 발표할 채널 ID와 참여자 Role ID는 `data/roles.json`에서 관리합니다.
 
 ### GitHub Actions 설정
 
 1. Repository Settings > Secrets and variables > Actions
 2. **Secrets** 탭에서 추가:
    - `DISCORD_BOT_TOKEN`
-   - `DISCORD_WEBHOOK_URL`
 3. **Variables** 탭에서 추가:
    - `DISCORD_SERVER_ID`
-   - `DISCORD_ROLE_ID`
 
-## Discord 봇 & Webhook 설정
+## Discord 봇 설정
 
 ### Bot 생성
 
@@ -59,15 +57,9 @@ bun install
 2. **SERVER MEMBERS INTENT** 활성화 (필수)
 3. OAuth2 > URL Generator에서 권한 설정:
    - Scopes: `bot`, `applications.commands`
-   - Bot Permissions: `Read Messages/View Channels`, `Manage Roles`
+   - Bot Permissions: `Read Messages/View Channels`, `Send Messages`, `Manage Roles`
 4. 생성된 URL로 서버에 봇 초대
 5. **중요**: 서버 설정 > 역할에서 봇 역할이 커피챗 Role보다 **위에** 위치해야 합니다
-
-### Webhook 생성
-
-1. Discord 서버 > 채널 설정 > 연동
-2. "웹후크 만들기" 클릭
-3. Webhook URL 복사 → `DISCORD_WEBHOOK_URL`로 사용
 
 ### Interactions Endpoint URL 설정
 
@@ -92,9 +84,7 @@ bun install
 ```bash
 # 환경변수 설정 후
 export DISCORD_BOT_TOKEN="your-token"
-export DISCORD_WEBHOOK_URL="your-webhook-url"
 export DISCORD_SERVER_ID="your-server-id"
-export DISCORD_ROLE_ID="your-role-id"
 
 # 매칭 실행
 bun run match
@@ -122,7 +112,7 @@ gh workflow run match.yml
 2. 매칭 이력 로드 (`data/history.json`)
 3. 중복 방지 알고리즘으로 매칭 생성
 4. `history.json`에 새 매칭 저장
-5. Discord Webhook으로 결과 발표
+5. Discord Bot API로 결과 발표
 6. 자동 PR 생성 (`chore/update-match-history-YYYY-MM-DD`)
 
 ## 매칭 알고리즘
