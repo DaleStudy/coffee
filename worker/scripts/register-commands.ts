@@ -4,9 +4,7 @@ const wranglerText = await Bun.file(
 	new URL("../wrangler.jsonc", import.meta.url),
 ).text();
 const wranglerConfig = JSON.parse(wranglerText.replace(/\/\/.*$/gm, ""));
-const devVars = await Bun.file(
-	new URL("../.dev.vars", import.meta.url),
-).text();
+const devVars = await Bun.file(new URL("../.dev.vars", import.meta.url)).text();
 
 const APPLICATION_ID =
 	process.env.DISCORD_APPLICATION_ID ??
