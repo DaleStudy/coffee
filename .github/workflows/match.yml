@@ -4,7 +4,16 @@ on:
   schedule:
     # 매주 월요일 UTC 00:00 (KST 09:00)
     - cron: "0 0 * * 1"
-  workflow_dispatch: # 수동 실행 가능
+  workflow_dispatch:
+    inputs:
+      role:
+        description: "매칭할 역할 (비워두면 전체 실행)"
+        required: false
+        type: choice
+        options:
+          - ""
+          - coffee
+          - coffee-ui
 
 jobs:
   match:
@@ -27,6 +36,7 @@ jobs:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           DISCORD_SERVER_ID: ${{ vars.DISCORD_SERVER_ID }}
           FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || '' }}
+          MATCH_ROLE: ${{ inputs.role }}
         run: bun run match
 
       - name: Format generated files
