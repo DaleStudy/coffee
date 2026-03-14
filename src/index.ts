@@ -18,13 +18,28 @@ function getEnvOrThrow(key: string): string {
 async function main() {
 	const botToken = getEnvOrThrow("DISCORD_BOT_TOKEN");
 	const forceRun = process.env.FORCE_RUN === "true";
+	const matchRole = process.env.MATCH_ROLE;
 
 	console.log("☕ 커피챗 매칭을 시작합니다...\n");
 	if (forceRun) {
 		console.log("⚡ 수동 실행: 스케줄 체크를 건너뜁니다.\n");
 	}
 
-	for (const role of roles) {
+	const targetRoles = matchRole
+		? roles.filter((r) => r.name === matchRole)
+		: roles;
+
+	if (matchRole && targetRoles.length === 0) {
+		throw new Error(
+			`역할 "${matchRole}"을(를) 찾을 수 없습니다. 사용 가능한 역할: ${roles.map((r) => r.name).join(", ")}`,
+		);
+	}
+
+	if (matchRole) {
+		console.log(`🎯 "${matchRole}" 역할만 매칭합니다.\n`);
+	}
+
+	for (const role of targetRoles) {
 		console.log(`--- [${role.displayName}] 역할 처리 중 ---`);
 
 		// 스케줄 체크 (수동 실행 시 건너뜀)

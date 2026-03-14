@@ -1,6 +1,9 @@
 import { COFFEE_COMMAND } from "../src/commands.ts";
 
-const wranglerConfig = await import("../wrangler.jsonc");
+const wranglerText = await Bun.file(
+	new URL("../wrangler.jsonc", import.meta.url),
+).text();
+const wranglerConfig = JSON.parse(wranglerText.replace(/\/\/.*$/gm, ""));
 const devVars = await Bun.file(new URL("../.dev.vars", import.meta.url)).text();
 
 const APPLICATION_ID =
@@ -9,7 +12,7 @@ const APPLICATION_ID =
 
 const BOT_TOKEN =
 	process.env.DISCORD_BOT_TOKEN ??
-	devVars.match(/^DISCORD_BOT_TOKEN=(.+)$/m)?.[1];
+	devVars.match(/^\s*DISCORD_BOT_TOKEN=(.+)$/m)?.[1]?.trim();
 
 if (!APPLICATION_ID || !BOT_TOKEN) {
 	console.error(
