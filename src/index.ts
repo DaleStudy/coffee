@@ -3,7 +3,7 @@ import { getParticipants } from "./discord.ts";
 import { createMatches, loadHistory, saveHistory } from "./matcher.ts";
 import { shouldRunToday } from "./schedule.ts";
 import type { RoleConfig } from "./types.ts";
-import { announceMatches } from "./webhook.ts";
+import { createGroupThreads } from "./webhook.ts";
 
 const roles = rolesConfig as RoleConfig[];
 
@@ -82,8 +82,8 @@ async function main() {
 		// 4. 매칭 이력 저장
 		await saveHistory(role.name, history, groups);
 
-		// 5. Discord에 발표
-		await announceMatches(role.channelId, botToken, groups, role.displayName);
+		// 5. 조별 쓰레드 생성
+		await createGroupThreads(role.channelId, botToken, groups);
 
 		console.log(`${role.displayName}: ✅ 매칭 완료!`);
 	}
