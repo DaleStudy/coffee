@@ -3,7 +3,7 @@ import { getParticipants } from "./discord.ts";
 import { createMatches, loadHistory, saveHistory } from "./matcher.ts";
 import { shouldRunToday } from "./schedule.ts";
 import type { RoleConfig } from "./types.ts";
-import { announceMatches } from "./webhook.ts";
+import { createGroupThreads } from "./webhook.ts";
 
 const roles = rolesConfig as RoleConfig[];
 
@@ -16,11 +16,15 @@ function getEnvOrThrow(key: string): string {
 }
 
 async function main() {
-	const botToken = getEnvOrThrow("DISCORD_BOT_TOKEN");
+	const dryRun = process.env.DRY_RUN === "true";
+	const botToken = dryRun ? "" : getEnvOrThrow("DISCORD_BOT_TOKEN");
 	const forceRun = process.env.FORCE_RUN === "true";
 	const matchRole = process.env.MATCH_ROLE;
 
 	console.log("☕ 커피챗 매칭을 시작합니다...\n");
+	if (dryRun) {
+		console.log("🧪 DRY_RUN: 매칭 결과만 출력하고 저장/발표하지 않습니다.\n");
+	}
 	if (forceRun) {
 		console.log("⚡ 수동 실행: 스케줄 체크를 건너뜁니다.\n");
 	}
@@ -42,8 +46,8 @@ async function main() {
 	for (const role of targetRoles) {
 		console.log(`--- [${role.displayName}] 역할 처리 중 ---`);
 
-		// 스케줄 체크 (수동 실행 시 건너뜀)
-		if (!forceRun && !shouldRunToday(role.schedule)) {
+		// 스케줄 체크 (수동 실행 또는 dry-run 시 건너뜀)
+		if (!forceRun && !dryRun && !shouldRunToday(role.schedule)) {
 			console.log(
 				`${role.displayName}: 이번 주는 매칭 주가 아닙니다. 건너뜁니다.`,
 			);
@@ -79,11 +83,24 @@ async function main() {
 			continue;
 		}
 
-		// 4. 매칭 이력 저장
-		await saveHistory(role.name, history, groups);
+		if (dryRun) {
+			const lines = groups.map((group, i) => {
+				const names = group.map((p) => p.username).join(", ");
+				return `  ${i + 1}. ${names}`;
+			});
+			console.log(`[DRY_RUN] 매칭 결과:\n${lines.join("\n")}`);
+		} else {
+			// 4. 매칭 이력 저장
+			await saveHistory(role.name, history, groups);
 
-		// 5. Discord에 발표
-		await announceMatches(role.channelId, botToken, groups, role.displayName);
+			// 5. 조별 쓰레드 생성
+			await createGroupThreads(
+				role.channelId,
+				botToken,
+				groups,
+				role.displayName,
+			);
+		}
 
 		console.log(`${role.displayName}: ✅ 매칭 완료!`);
 	}

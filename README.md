@@ -27,10 +27,25 @@ bun install
 
 ## 환경변수 설정
 
-| 환경변수 | 설명 | 타입 |
+### 매칭 실행 (`bun run match`)
+
+| 환경변수 | 설명 | 필수 |
 |---------|------|------|
-| `DISCORD_BOT_TOKEN` | Discord Bot 토큰 | Secret |
-| `DISCORD_SERVER_ID` | Discord 서버(Guild) ID | Variable |
+| `DISCORD_BOT_TOKEN` | Discord Bot 토큰 (서버 멤버 조회 및 쓰레드 생성에 사용) | Yes |
+| `DISCORD_SERVER_ID` | Discord 서버(Guild) ID | Yes |
+| `FORCE_RUN` | `true`로 설정 시 스케줄 무시하고 즉시 실행 | No |
+| `DRY_RUN` | `true`로 설정 시 매칭 결과만 콘솔에 출력 (이력 저장/쓰레드 생성 스킵) | No |
+| `MATCH_ROLE` | 특정 역할만 매칭 (예: `coffee`) | No |
+
+### Worker (`worker/`)
+
+| 환경변수 | 설명 | 설정 위치 |
+|---------|------|----------|
+| `DISCORD_PUBLIC_KEY` | Discord 요청 서명 검증용 공개키 | `wrangler.jsonc` |
+| `DISCORD_APPLICATION_ID` | Discord 앱 ID (슬래시 명령어 등록) | `wrangler.jsonc` |
+| `DISCORD_SERVER_ID` | Discord 서버 ID | `wrangler.jsonc` |
+| `DISCORD_ROLE_ID` | 커피챗 Role ID | `wrangler.jsonc` |
+| `DISCORD_BOT_TOKEN` | Discord Bot 토큰 | `wrangler secret` |
 
 > 매칭 결과를 발표할 채널 ID와 참여자 Role ID는 `data/roles.json`에서 관리합니다.
 
@@ -57,7 +72,7 @@ bun install
 2. **SERVER MEMBERS INTENT** 활성화 (필수)
 3. OAuth2 > URL Generator에서 권한 설정:
    - Scopes: `bot`, `applications.commands`
-   - Bot Permissions: `Read Messages/View Channels`, `Send Messages`, `Manage Roles`
+   - Bot Permissions: `Read Messages/View Channels`, `Send Messages`, `Send Messages in Threads`, `Create Public Threads`, `Manage Roles`
 4. 생성된 URL로 서버에 봇 초대
 5. **중요**: 서버 설정 > 역할에서 봇 역할이 커피챗 Role보다 **위에** 위치해야 합니다
 
@@ -82,11 +97,15 @@ bun install
 ### 로컬 실행
 
 ```bash
-# 환경변수 설정 후
-export DISCORD_BOT_TOKEN="your-token"
-export DISCORD_SERVER_ID="your-server-id"
-
 # 매칭 실행
+DISCORD_BOT_TOKEN="your-token" \
+DISCORD_SERVER_ID="your-server-id" \
+bun run match
+
+# Dry-run (Discord에 영향 없이 매칭 결과만 확인)
+DRY_RUN=true \
+DISCORD_BOT_TOKEN="your-token" \
+DISCORD_SERVER_ID="your-server-id" \
 bun run match
 ```
 

@@ -278,10 +278,13 @@ export function assignExtraMembers(
 			continue;
 		}
 
+		const minSize = Math.min(...groups.map((g) => g.length));
 		let bestIndex = 0;
 		let bestScore = -1;
 
 		for (let i = 0; i < groups.length; i++) {
+			if (groups[i].length > minSize) continue;
+
 			const group = groups[i];
 			let totalScore = 0;
 			for (const existing of group) {
