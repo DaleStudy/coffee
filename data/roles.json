@@ -1,26 +1,26 @@
 [
-  {
-    "name": "coffee",
-    "displayName": "달레 스터디 커피챗",
-    "roleId": "1465029948887531533",
-    "channelId": "1464985658966671474",
-    "schedule": "biweekly",
-    "groupSize": 3
-  },
-  {
-    "name": "coffee-ui",
-    "displayName": "달레 UI 커피챗",
-    "roleId": "1477657822836686940",
-    "channelId": "1280152682044063837",
-    "schedule": "biweekly",
-    "groupSize": 2
-  },
-  {
-    "name": "coffee-test",
-    "displayName": "테스트 커피챗",
-    "roleId": "1482772179656376340",
-    "channelId": "1311819804335935558",
-    "schedule": "weekly",
-    "groupSize": 2
-  }
+	{
+		"name": "coffee",
+		"displayName": "달레 스터디 커피챗",
+		"roleId": "1465029948887531533",
+		"channelId": "1464985658966671474",
+		"schedule": "biweekly",
+		"groupSize": 3
+	},
+	{
+		"name": "coffee-ui",
+		"displayName": "달레 UI 커피챗",
+		"roleId": "1477657822836686940",
+		"channelId": "1280152682044063837",
+		"schedule": "biweekly",
+		"groupSize": 2
+	},
+	{
+		"name": "coffee-test",
+		"displayName": "테스트 커피챗",
+		"roleId": "1482772179656376340",
+		"channelId": "1311819804335935558",
+		"schedule": "weekly",
+		"groupSize": 2
+	}
 ]

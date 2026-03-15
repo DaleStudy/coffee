@@ -35,12 +35,7 @@ describe("createGroupThreads", () => {
 			],
 		];
 
-		await createGroupThreads(
-			TEST_CHANNEL_ID,
-			TEST_BOT_TOKEN,
-			groups,
-			"커피챗",
-		);
+		await createGroupThreads(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups, "커피챗");
 
 		expect(calls.length).toBe(4);
 
@@ -90,12 +85,7 @@ describe("createGroupThreads", () => {
 		];
 
 		const longName = "가".repeat(98);
-		await createGroupThreads(
-			TEST_CHANNEL_ID,
-			TEST_BOT_TOKEN,
-			groups,
-			longName,
-		);
+		await createGroupThreads(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups, longName);
 
 		expect(capturedBody).toBeDefined();
 		const parsed = JSON.parse(capturedBody!);
@@ -136,12 +126,7 @@ describe("createGroupThreads", () => {
 			],
 		];
 
-		await createGroupThreads(
-			TEST_CHANNEL_ID,
-			TEST_BOT_TOKEN,
-			groups,
-			"커피챗",
-		);
+		await createGroupThreads(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups, "커피챗");
 
 		expect(threadCalls.length).toBe(2);
 		// 첫 번째 실패(쓰레드만) + 두 번째 성공(쓰레드+메시지) = 3회
@@ -172,12 +157,7 @@ describe("createGroupThreads", () => {
 			],
 		];
 
-		await createGroupThreads(
-			TEST_CHANNEL_ID,
-			TEST_BOT_TOKEN,
-			groups,
-			"커피챗",
-		);
+		await createGroupThreads(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups, "커피챗");
 
 		expect(capturedMessageBody).toBeDefined();
 		const parsed = JSON.parse(capturedMessageBody!);

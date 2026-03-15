@@ -94,7 +94,12 @@ async function main() {
 			await saveHistory(role.name, history, groups);
 
 			// 5. 조별 쓰레드 생성
-			await createGroupThreads(role.channelId, botToken, groups, role.displayName);
+			await createGroupThreads(
+				role.channelId,
+				botToken,
+				groups,
+				role.displayName,
+			);
 		}
 
 		console.log(`${role.displayName}: ✅ 매칭 완료!`);
