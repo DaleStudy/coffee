@@ -35,15 +35,19 @@ describe("createGroupThreads", () => {
 			],
 		];
 
-		await createGroupThreads(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups);
+		await createGroupThreads(
+			TEST_CHANNEL_ID,
+			TEST_BOT_TOKEN,
+			groups,
+			"커피챗",
+		);
 
 		expect(calls.length).toBe(4);
 
 		// 첫 번째 그룹: 쓰레드 생성
 		expect(calls[0].url).toContain(`/channels/${TEST_CHANNEL_ID}/threads`);
 		const thread1Body = JSON.parse(calls[0].body);
-		expect(thread1Body.name).toContain("Alice");
-		expect(thread1Body.name).toContain("Bob");
+		expect(thread1Body.name).toBe("☕ 커피챗 1조");
 		expect(thread1Body.type).toBe(11);
 		expect(thread1Body.auto_archive_duration).toBe(10080);
 
@@ -55,6 +59,8 @@ describe("createGroupThreads", () => {
 
 		// 두 번째 그룹: 쓰레드 생성
 		expect(calls[2].url).toContain(`/channels/${TEST_CHANNEL_ID}/threads`);
+		const thread2Body = JSON.parse(calls[2].body);
+		expect(thread2Body.name).toBe("☕ 커피챗 2조");
 
 		// 두 번째 그룹: 초기 메시지
 		expect(calls[3].url).toContain("/channels/thread-3/messages");
@@ -78,12 +84,18 @@ describe("createGroupThreads", () => {
 
 		const groups: Participant[][] = [
 			[
-				{ id: "1", username: "A".repeat(50) },
-				{ id: "2", username: "B".repeat(50) },
+				{ id: "1", username: "A" },
+				{ id: "2", username: "B" },
 			],
 		];
 
-		await createGroupThreads(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups);
+		const longName = "가".repeat(98);
+		await createGroupThreads(
+			TEST_CHANNEL_ID,
+			TEST_BOT_TOKEN,
+			groups,
+			longName,
+		);
 
 		expect(capturedBody).toBeDefined();
 		const parsed = JSON.parse(capturedBody!);
@@ -124,7 +136,12 @@ describe("createGroupThreads", () => {
 			],
 		];
 
-		await createGroupThreads(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups);
+		await createGroupThreads(
+			TEST_CHANNEL_ID,
+			TEST_BOT_TOKEN,
+			groups,
+			"커피챗",
+		);
 
 		expect(threadCalls.length).toBe(2);
 		// 첫 번째 실패(쓰레드만) + 두 번째 성공(쓰레드+메시지) = 3회
@@ -155,7 +172,12 @@ describe("createGroupThreads", () => {
 			],
 		];
 
-		await createGroupThreads(TEST_CHANNEL_ID, TEST_BOT_TOKEN, groups);
+		await createGroupThreads(
+			TEST_CHANNEL_ID,
+			TEST_BOT_TOKEN,
+			groups,
+			"커피챗",
+		);
 
 		expect(capturedMessageBody).toBeDefined();
 		const parsed = JSON.parse(capturedMessageBody!);
