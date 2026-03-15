@@ -4,7 +4,7 @@
     "displayName": "달레 스터디 커피챗",
     "roleId": "1465029948887531533",
     "channelId": "1464985658966671474",
-    "schedule": "weekly",
+    "schedule": "biweekly",
     "groupSize": 3
   },
   {
@@ -20,7 +20,7 @@
     "displayName": "테스트 커피챗",
     "roleId": "1482772179656376340",
     "channelId": "1311819804335935558",
-    "schedule": "biweekly",
+    "schedule": "weekly",
     "groupSize": 2
   }
 ]
