@@ -149,15 +149,26 @@ describe("createMatches with groupSize", () => {
 		expect(lengths).toEqual([3, 4]);
 	});
 
-	test("groupSize=3이고 8명이면 나머지 2명이 배치된다", () => {
+	test("groupSize=3이고 8명이면 4-4로 균등 분배된다", () => {
 		const participants = createParticipants(8);
 		const history: MatchHistory = { matches: [] };
 
 		const groups = createMatches(participants, history, { groupSize: 3 });
 
 		expect(groups).toHaveLength(2);
-		const total = groups.reduce((sum, g) => sum + g.length, 0);
-		expect(total).toBe(8);
+		const lengths = groups.map((g) => g.length).sort();
+		expect(lengths).toEqual([4, 4]);
+	});
+
+	test("groupSize=3이고 11명이면 3-4-4로 균등 분배된다", () => {
+		const participants = createParticipants(11);
+		const history: MatchHistory = { matches: [] };
+
+		const groups = createMatches(participants, history, { groupSize: 3 });
+
+		expect(groups).toHaveLength(3);
+		const lengths = groups.map((g) => g.length).sort();
+		expect(lengths).toEqual([3, 4, 4]);
 	});
 
 	test("groupSize=4일 때 4인 조로 매칭된다", () => {
