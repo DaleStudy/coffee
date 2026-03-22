@@ -22,5 +22,13 @@
 		"channelId": "1485256492520050760",
 		"schedule": "weekly",
 		"groupSize": 2
+	},
+	{
+		"name": "coffee-ai",
+		"displayName": "AI 프로젝트 커피챗",
+		"roleId": "1485266092313018458",
+		"channelId": "1485256492520050760",
+		"schedule": "biweekly",
+		"groupSize": 2
 	}
 ]
