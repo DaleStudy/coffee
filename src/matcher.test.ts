@@ -663,4 +663,63 @@ describe("통계적 검증", () => {
 		// 신규-경험자 믹싱이 어느 정도 발생해야 함
 		expect(mixedPairCount).toBeGreaterThan(iterations * 0.3);
 	});
+
+	test("최근에 만난 페어보다 오래전에 만난 페어가 선호된다", () => {
+		const participants = createParticipants(4);
+		const history: MatchHistory = {
+			matches: [
+				{ date: "2025-01-01", pairs: [["user1", "user3"], ["user2", "user4"]] },
+				{ date: "2025-01-08", pairs: [["user1", "user4"], ["user2", "user3"]] },
+				{ date: "2025-01-15", pairs: [["user1", "user3"], ["user2", "user4"]] },
+				{ date: "2025-01-22", pairs: [["user1", "user4"], ["user2", "user3"]] },
+				// 직전: user1-user2, user3-user4 (하드 제외 대상)
+				{ date: "2025-01-29", pairs: [["user1", "user2"], ["user3", "user4"]] },
+			],
+		};
+
+		// 하드 제외로 user1-user2, user3-user4 불가
+		// 남은 선택지: (user1-user3, user2-user4) vs (user1-user4, user2-user3)
+		// user1-user3: index 0(roundsAgo=5) & index 2(roundsAgo=3), penalty = 1/5+1/3 = 0.533
+		// user1-user4: index 1(roundsAgo=4) & index 3(roundsAgo=2), penalty = 1/4+1/2 = 0.75
+		// user1-user3의 penalty가 더 낮으므로 (user1-user3, user2-user4) 선호
+		let user1user3Count = 0;
+		const iterations = 100;
+
+		for (let i = 0; i < iterations; i++) {
+			const pairs = createMatches(participants, history);
+			const pairKeys = pairs.map((pair) =>
+				pair.map((p) => p.id).sort().join(","),
+			);
+			if (pairKeys.includes("user1,user3")) {
+				user1user3Count++;
+			}
+		}
+
+		// best-of-N은 결정적으로 최고점을 선택하므로 대부분 user1-user3을 선택해야 함
+		expect(user1user3Count).toBeGreaterThan(iterations * 0.5);
+	});
+});
+
+describe("성능", () => {
+	test("30명 매칭이 500ms 이내에 완료된다", () => {
+		const participants = createParticipants(30);
+		const history: MatchHistory = {
+			matches: Array.from({ length: 20 }, (_, i) => ({
+				date: `2025-01-${String(i + 1).padStart(2, "0")}`,
+				pairs: [
+					[`user${(i % 30) + 1}`, `user${((i + 1) % 30) + 1}`],
+					[`user${((i + 2) % 30) + 1}`, `user${((i + 3) % 30) + 1}`],
+				],
+			})),
+		};
+
+		const start = performance.now();
+		const groups = createMatches(participants, history);
+		const elapsed = performance.now() - start;
+
+		expect(elapsed).toBeLessThan(500);
+		expect(groups.length).toBeGreaterThan(0);
+		const allIds = groups.flat().map((p) => p.id).sort();
+		expect(allIds).toEqual(participants.map((p) => p.id).sort());
+	});
 });
