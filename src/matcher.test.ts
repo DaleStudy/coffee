@@ -5,10 +5,12 @@ import {
 	calculatePairScore,
 	calculateRecencyPenalty,
 	createMatches,
+	generatePartition,
 	getExperienceLevel,
 	getExperienceMixScore,
 	getMeetingCount,
 	getRecentPairs,
+	scorePartition,
 	scoresToProbabilities,
 	weightedRandomSelect,
 } from "./matcher.ts";
@@ -561,6 +563,63 @@ describe("weightedRandomSelect", () => {
 	test("하나만 있으면 그것을 반환", () => {
 		const candidates = [{ id: "a", probability: 1.0 }];
 		expect(weightedRandomSelect(candidates)).toEqual(candidates[0]);
+	});
+});
+
+describe("generatePartition", () => {
+	test("참여자를 groupSize씩 나눈다", () => {
+		const participants = createParticipants(6);
+		const groups = generatePartition(participants, 2);
+
+		expect(groups).toHaveLength(3);
+		expect(groups.every((g) => g.length === 2)).toBe(true);
+	});
+
+	test("모든 참여자가 포함된다", () => {
+		const participants = createParticipants(6);
+		const groups = generatePartition(participants, 2);
+		const allIds = groups.flat().map((p) => p.id).sort();
+
+		expect(allIds).toEqual(participants.map((p) => p.id).sort());
+	});
+
+	test("나머지 인원은 기존 그룹에 분배된다", () => {
+		const participants = createParticipants(7);
+		const groups = generatePartition(participants, 3);
+
+		expect(groups).toHaveLength(2);
+		const lengths = groups.map((g) => g.length).sort();
+		expect(lengths).toEqual([3, 4]);
+	});
+});
+
+describe("scorePartition", () => {
+	test("그룹 내 모든 페어의 pairScore 합을 반환한다", () => {
+		const participants = createParticipants(4);
+		const history: MatchHistory = { matches: [] };
+		const stats = calculateExperienceStats(participants, history);
+		const recentPairs = new Set<string>();
+		const groups = [[participants[0], participants[1]], [participants[2], participants[3]]];
+
+		const score = scorePartition(groups, history, stats, recentPairs);
+
+		// 빈 히스토리에서 모든 meetingScore=1.0, 모든 mixScore=0.3 (newcomer-newcomer)
+		// pairScore = 1.0 * 0.6 + 0.3 * 0.4 = 0.72 per pair
+		// 2 groups × 1 pair each = 2 pairs total
+		expect(score.total).toBeCloseTo(0.72 * 2, 5);
+		expect(score.hasViolation).toBe(false);
+	});
+
+	test("하드 제외 위반 페어가 있으면 hasViolation이 true", () => {
+		const participants = createParticipants(4);
+		const history: MatchHistory = { matches: [] };
+		const stats = calculateExperienceStats(participants, history);
+		const recentPairs = new Set(["user1,user2"]);
+		const groups = [[participants[0], participants[1]], [participants[2], participants[3]]];
+
+		const score = scorePartition(groups, history, stats, recentPairs);
+
+		expect(score.hasViolation).toBe(true);
 	});
 });
 

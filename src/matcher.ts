@@ -357,6 +357,68 @@ export function assignExtraMembers(
 	}
 }
 
+/**
+ * 참여자를 셔플 후 groupSize씩 나누어 파티션 생성
+ * 나머지 인원은 앞 그룹부터 1명씩 분배
+ */
+export function generatePartition(
+	participants: Participant[],
+	groupSize: number,
+): Participant[][] {
+	const shuffled = shuffle(participants);
+	const numGroups = Math.floor(shuffled.length / groupSize);
+	const extra = shuffled.length % groupSize;
+
+	const groups: Participant[][] = [];
+	let idx = 0;
+
+	// groupSize씩 나누기
+	for (let g = 0; g < numGroups; g++) {
+		groups.push(shuffled.slice(idx, idx + groupSize));
+		idx += groupSize;
+	}
+
+	// 나머지 인원을 앞 그룹부터 1명씩 분배
+	for (let e = 0; e < extra; e++) {
+		groups[e % numGroups].push(shuffled[idx + e]);
+	}
+
+	return groups;
+}
+
+interface PartitionScore {
+	total: number;
+	hasViolation: boolean;
+}
+
+/**
+ * 파티션의 총점 계산 + 하드 제외 위반 여부 확인
+ * total = Σ(그룹 내 모든 페어의 pairScore)
+ */
+export function scorePartition(
+	groups: Participant[][],
+	history: MatchHistory,
+	stats: ExperienceStats,
+	recentPairs: Set<string>,
+): PartitionScore {
+	let total = 0;
+	let hasViolation = false;
+
+	for (const group of groups) {
+		for (let i = 0; i < group.length; i++) {
+			for (let j = i + 1; j < group.length; j++) {
+				total += calculatePairScore(group[i].id, group[j].id, history, stats);
+				const key = [group[i].id, group[j].id].sort().join(",");
+				if (recentPairs.has(key)) {
+					hasViolation = true;
+				}
+			}
+		}
+	}
+
+	return { total, hasViolation };
+}
+
 export function createMatches(
 	participants: Participant[],
 	history: MatchHistory,
