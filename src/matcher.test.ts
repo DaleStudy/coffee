@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import {
-	buildGroupCandidates,
 	calculateExperienceStats,
 	calculatePairScore,
 	calculateRecencyPenalty,
@@ -9,11 +8,8 @@ import {
 	generatePartition,
 	getExperienceLevel,
 	getExperienceMixScore,
-	getMeetingCount,
 	getRecentPairs,
 	scorePartition,
-	scoresToProbabilities,
-	weightedRandomSelect,
 } from "./matcher.ts";
 import type { MatchHistory, Participant } from "./types.ts";
 
@@ -195,52 +191,6 @@ describe("createMatches with groupSize", () => {
 		const matchedIds = groups.flat().map((p) => p.id);
 
 		expect(matchedIds.sort()).toEqual(participants.map((p) => p.id).sort());
-	});
-});
-
-describe("getMeetingCount", () => {
-	test("만난 적 없으면 0을 반환한다", () => {
-		const history: MatchHistory = { matches: [] };
-		expect(getMeetingCount("user1", "user2", history)).toBe(0);
-	});
-
-	test("한 번 만났으면 1을 반환한다", () => {
-		const history: MatchHistory = {
-			matches: [
-				{
-					date: "2025-01-01",
-					pairs: [["user1", "user2"]],
-				},
-			],
-		};
-		expect(getMeetingCount("user1", "user2", history)).toBe(1);
-	});
-
-	test("여러 번 만났으면 정확한 횟수를 반환한다", () => {
-		const history: MatchHistory = {
-			matches: [
-				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
-				{ date: "2025-01-08", pairs: [["user1", "user3"]] },
-				{ date: "2025-01-15", pairs: [["user1", "user2"]] },
-				{ date: "2025-01-22", pairs: [["user1", "user2"]] },
-			],
-		};
-		expect(getMeetingCount("user1", "user2", history)).toBe(3);
-		expect(getMeetingCount("user1", "user3", history)).toBe(1);
-	});
-
-	test("3인조에서도 만남을 카운트한다", () => {
-		const history: MatchHistory = {
-			matches: [
-				{
-					date: "2025-01-01",
-					pairs: [["user1", "user2", "user3"]],
-				},
-			],
-		};
-		expect(getMeetingCount("user1", "user2", history)).toBe(1);
-		expect(getMeetingCount("user1", "user3", history)).toBe(1);
-		expect(getMeetingCount("user2", "user3", history)).toBe(1);
 	});
 });
 
@@ -488,73 +438,6 @@ describe("getRecentPairs", () => {
 		const pairs = getRecentPairs(history, 1);
 		expect(pairs.has("user3,user4")).toBe(true);
 		expect(pairs.has("user1,user2")).toBe(false);
-	});
-});
-
-describe("buildGroupCandidates", () => {
-	test("groupSize=2일 때 모든 페어를 생성한다", () => {
-		const participants = createParticipants(3);
-		const history: MatchHistory = { matches: [] };
-		const stats = calculateExperienceStats(participants, history);
-
-		const candidates = buildGroupCandidates(participants, history, stats, 2);
-
-		// C(3,2) = 3
-		expect(candidates).toHaveLength(3);
-		expect(candidates.every((c) => c.ids.length === 2)).toBe(true);
-	});
-
-	test("groupSize=3일 때 모든 3인 조합을 생성한다", () => {
-		const participants = createParticipants(4);
-		const history: MatchHistory = { matches: [] };
-		const stats = calculateExperienceStats(participants, history);
-
-		const candidates = buildGroupCandidates(participants, history, stats, 3);
-
-		// C(4,3) = 4
-		expect(candidates).toHaveLength(4);
-		expect(candidates.every((c) => c.ids.length === 3)).toBe(true);
-	});
-});
-
-describe("scoresToProbabilities", () => {
-	test("빈 배열은 빈 배열 반환", () => {
-		expect(scoresToProbabilities([])).toEqual([]);
-	});
-
-	test("높은 점수가 높은 확률을 갖는다", () => {
-		const candidates = [
-			{ ids: ["a", "b"], score: 1.0 },
-			{ ids: ["c", "d"], score: 0.5 },
-		];
-
-		const probs = scoresToProbabilities(candidates, 0.5);
-
-		expect(probs[0].probability).toBeGreaterThan(probs[1].probability);
-	});
-
-	test("확률의 합은 1이다", () => {
-		const candidates = [
-			{ ids: ["a", "b"], score: 0.8 },
-			{ ids: ["c", "d"], score: 0.6 },
-			{ ids: ["e", "f"], score: 0.4 },
-		];
-
-		const probs = scoresToProbabilities(candidates, 0.5);
-		const sum = probs.reduce((acc, p) => acc + p.probability, 0);
-
-		expect(sum).toBeCloseTo(1.0, 5);
-	});
-});
-
-describe("weightedRandomSelect", () => {
-	test("빈 배열은 null 반환", () => {
-		expect(weightedRandomSelect([])).toBeNull();
-	});
-
-	test("하나만 있으면 그것을 반환", () => {
-		const candidates = [{ id: "a", probability: 1.0 }];
-		expect(weightedRandomSelect(candidates)).toEqual(candidates[0]);
 	});
 });
 

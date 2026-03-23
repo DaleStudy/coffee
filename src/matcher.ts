@@ -40,27 +40,6 @@ export function shuffle<T>(array: T[]): T[] {
 	return result;
 }
 
-function getRecentGroups(
-	history: MatchHistory,
-	lookback: number = 4,
-): Set<string> {
-	const recentMatches = history.matches.slice(-lookback);
-	const groups = new Set<string>();
-
-	for (const match of recentMatches) {
-		for (const group of match.pairs) {
-			const sorted = [...group].sort();
-			groups.add(sorted.join(","));
-		}
-	}
-
-	return groups;
-}
-
-function groupKey(ids: string[]): string {
-	return [...ids].sort().join(",");
-}
-
 /**
  * 최근 lookback 라운드의 모든 페어를 Set으로 반환
  * 페어 키는 "id1,id2" 형식 (정렬됨)
@@ -87,25 +66,6 @@ export function getRecentPairs(
 }
 
 // ===== 경험 & 점수 함수들 =====
-
-/**
- * 두 사람이 만난 횟수를 반환
- */
-export function getMeetingCount(
-	idA: string,
-	idB: string,
-	history: MatchHistory,
-): number {
-	let count = 0;
-	for (const match of history.matches) {
-		for (const pair of match.pairs) {
-			if (pair.includes(idA) && pair.includes(idB)) {
-				count++;
-			}
-		}
-	}
-	return count;
-}
 
 /**
  * 두 사람의 recency 기반 만남 페널티 계산
@@ -223,138 +183,6 @@ export function calculatePairScore(
 	const mixScore = getExperienceMixScore(idA, idB, stats);
 
 	return meetingScore * 0.6 + mixScore * 0.4;
-}
-
-interface ScoredCandidate {
-	ids: string[];
-	score: number;
-}
-
-/**
- * 그룹 후보 생성: C(n, groupSize) 조합을 만들고
- * 그룹 내 모든 페어 점수의 평균을 그룹 점수로 사용
- */
-export function buildGroupCandidates(
-	participants: Participant[],
-	history: MatchHistory,
-	stats: ExperienceStats,
-	groupSize: number = 2,
-): ScoredCandidate[] {
-	const candidates: ScoredCandidate[] = [];
-	const ids = participants.map((p) => p.id);
-
-	function* combinations(arr: string[], k: number): Generator<string[]> {
-		if (k === 0) {
-			yield [];
-			return;
-		}
-		for (let i = 0; i <= arr.length - k; i++) {
-			for (const rest of combinations(arr.slice(i + 1), k - 1)) {
-				yield [arr[i], ...rest];
-			}
-		}
-	}
-
-	for (const combo of combinations(ids, groupSize)) {
-		// 그룹 내 모든 페어 점수의 평균
-		let totalScore = 0;
-		let pairCount = 0;
-		for (let i = 0; i < combo.length; i++) {
-			for (let j = i + 1; j < combo.length; j++) {
-				totalScore += calculatePairScore(combo[i], combo[j], history, stats);
-				pairCount++;
-			}
-		}
-		const avgScore = pairCount > 0 ? totalScore / pairCount : 0;
-		candidates.push({ ids: combo, score: avgScore });
-	}
-
-	return candidates;
-}
-
-/**
- * 소프트맥스 변환으로 점수를 확률로 변환
- */
-export function scoresToProbabilities(
-	candidates: ScoredCandidate[],
-	temperature: number = 0.5,
-): { ids: string[]; probability: number }[] {
-	if (candidates.length === 0) return [];
-
-	// temperature로 나눈 후 exp 적용
-	const expScores = candidates.map((c) => Math.exp(c.score / temperature));
-	const sumExp = expScores.reduce((a, b) => a + b, 0);
-
-	return candidates.map((c, i) => ({
-		ids: c.ids,
-		probability: expScores[i] / sumExp,
-	}));
-}
-
-/**
- * 확률에 따른 가중 무작위 선택
- */
-export function weightedRandomSelect<T extends { probability: number }>(
-	candidates: T[],
-): T | null {
-	if (candidates.length === 0) return null;
-
-	const random = Math.random();
-	let cumulative = 0;
-
-	for (const candidate of candidates) {
-		cumulative += candidate.probability;
-		if (random < cumulative) {
-			return candidate;
-		}
-	}
-
-	// 부동소수점 오차 대비
-	return candidates[candidates.length - 1];
-}
-
-/**
- * 나머지 인원을 기존 그룹 중 최적의 그룹에 배치
- */
-export function assignExtraMembers(
-	extraMembers: Participant[],
-	groups: Participant[][],
-	history: MatchHistory,
-	stats: ExperienceStats,
-): void {
-	for (const member of extraMembers) {
-		if (groups.length === 0) break;
-		if (groups.length === 1) {
-			groups[0].push(member);
-			continue;
-		}
-
-		const minSize = Math.min(...groups.map((g) => g.length));
-		let bestIndex = 0;
-		let bestScore = -1;
-
-		for (let i = 0; i < groups.length; i++) {
-			if (groups[i].length > minSize) continue;
-
-			const group = groups[i];
-			let totalScore = 0;
-			for (const existing of group) {
-				totalScore += calculatePairScore(
-					member.id,
-					existing.id,
-					history,
-					stats,
-				);
-			}
-
-			if (totalScore > bestScore) {
-				bestScore = totalScore;
-				bestIndex = i;
-			}
-		}
-
-		groups[bestIndex].push(member);
-	}
 }
 
 /**

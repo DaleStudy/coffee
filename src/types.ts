@@ -20,7 +20,6 @@ export interface ExperienceStats {
 }
 
 export interface MatchingOptions {
-	temperature?: number; // 기본 0.5
 	groupSize?: number; // 기본 2
 }
 
