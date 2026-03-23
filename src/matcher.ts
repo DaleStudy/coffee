@@ -61,6 +61,31 @@ function groupKey(ids: string[]): string {
 	return [...ids].sort().join(",");
 }
 
+/**
+ * 최근 lookback 라운드의 모든 페어를 Set으로 반환
+ * 페어 키는 "id1,id2" 형식 (정렬됨)
+ */
+export function getRecentPairs(
+	history: MatchHistory,
+	lookback: number = 1,
+): Set<string> {
+	const recentMatches = history.matches.slice(-lookback);
+	const pairs = new Set<string>();
+
+	for (const match of recentMatches) {
+		for (const group of match.pairs) {
+			for (let i = 0; i < group.length; i++) {
+				for (let j = i + 1; j < group.length; j++) {
+					const key = [group[i], group[j]].sort().join(",");
+					pairs.add(key);
+				}
+			}
+		}
+	}
+
+	return pairs;
+}
+
 // ===== 경험 & 점수 함수들 =====
 
 /**

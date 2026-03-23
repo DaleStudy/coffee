@@ -8,6 +8,7 @@ import {
 	getExperienceLevel,
 	getExperienceMixScore,
 	getMeetingCount,
+	getRecentPairs,
 	scoresToProbabilities,
 	weightedRandomSelect,
 } from "./matcher.ts";
@@ -443,6 +444,56 @@ describe("calculatePairScore", () => {
 		// mixScore = 0.6 (regular-regular)
 		// total = 0.833 * 0.6 + 0.6 * 0.4 = 0.5 + 0.24 = 0.74
 		expect(score).toBeCloseTo(0.74, 2);
+	});
+});
+
+describe("getRecentPairs", () => {
+	test("빈 히스토리면 빈 Set을 반환한다", () => {
+		const history: MatchHistory = { matches: [] };
+		expect(getRecentPairs(history).size).toBe(0);
+	});
+
+	test("직전 라운드의 모든 페어를 반환한다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{
+					date: "2025-01-01",
+					pairs: [["user1", "user2"], ["user3", "user4"]],
+				},
+			],
+		};
+		const pairs = getRecentPairs(history);
+		expect(pairs.has("user1,user2")).toBe(true);
+		expect(pairs.has("user3,user4")).toBe(true);
+		expect(pairs.size).toBe(2);
+	});
+
+	test("3인조에서는 모든 페어 조합을 반환한다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{
+					date: "2025-01-01",
+					pairs: [["user1", "user2", "user3"]],
+				},
+			],
+		};
+		const pairs = getRecentPairs(history);
+		expect(pairs.has("user1,user2")).toBe(true);
+		expect(pairs.has("user1,user3")).toBe(true);
+		expect(pairs.has("user2,user3")).toBe(true);
+		expect(pairs.size).toBe(3);
+	});
+
+	test("lookback=1이면 직전 라운드만 본다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
+				{ date: "2025-01-08", pairs: [["user3", "user4"]] },
+			],
+		};
+		const pairs = getRecentPairs(history, 1);
+		expect(pairs.has("user3,user4")).toBe(true);
+		expect(pairs.has("user1,user2")).toBe(false);
 	});
 });
 
