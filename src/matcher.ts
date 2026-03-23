@@ -234,7 +234,15 @@ function precomputePairScores(
 	for (let i = 0; i < participants.length; i++) {
 		for (let j = i + 1; j < participants.length; j++) {
 			const key = pairKey(participants[i].id, participants[j].id);
-			scores.set(key, calculatePairScore(participants[i].id, participants[j].id, history, stats));
+			scores.set(
+				key,
+				calculatePairScore(
+					participants[i].id,
+					participants[j].id,
+					history,
+					stats,
+				),
+			);
 		}
 	}
 	return scores;
@@ -300,7 +308,10 @@ export function findBestPartition(
 			bestAny = { groups, score: result.total };
 		}
 
-		if (!result.hasViolation && (!bestValid || result.total > bestValid.score)) {
+		if (
+			!result.hasViolation &&
+			(!bestValid || result.total > bestValid.score)
+		) {
 			bestValid = { groups, score: result.total };
 		}
 	}

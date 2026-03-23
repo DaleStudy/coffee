@@ -90,7 +90,10 @@ describe("createMatches", () => {
 		for (let i = 0; i < 20; i++) {
 			const pairs = createMatches(participants, history);
 			const pairKeys = pairs.map((pair) =>
-				pair.map((p) => p.id).sort().join(","),
+				pair
+					.map((p) => p.id)
+					.sort()
+					.join(","),
 			);
 
 			expect(pairKeys).not.toContain("user1,user2");
@@ -202,9 +205,7 @@ describe("calculateRecencyPenalty", () => {
 
 	test("직전 라운드에서 만났으면 1.0을 반환한다", () => {
 		const history: MatchHistory = {
-			matches: [
-				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
-			],
+			matches: [{ date: "2025-01-01", pairs: [["user1", "user2"]] }],
 		};
 		expect(calculateRecencyPenalty("user1", "user2", history)).toBe(1);
 	});
@@ -218,16 +219,20 @@ describe("calculateRecencyPenalty", () => {
 			],
 		};
 		// penalty = 1/1 + 1/3 = 1.333...
-		expect(calculateRecencyPenalty("user1", "user2", history)).toBeCloseTo(1 + 1 / 3, 5);
+		expect(calculateRecencyPenalty("user1", "user2", history)).toBeCloseTo(
+			1 + 1 / 3,
+			5,
+		);
 		// penalty = 1/2
-		expect(calculateRecencyPenalty("user1", "user3", history)).toBeCloseTo(1 / 2, 5);
+		expect(calculateRecencyPenalty("user1", "user3", history)).toBeCloseTo(
+			1 / 2,
+			5,
+		);
 	});
 
 	test("3인조에서 만남도 카운트한다", () => {
 		const history: MatchHistory = {
-			matches: [
-				{ date: "2025-01-01", pairs: [["user1", "user2", "user3"]] },
-			],
+			matches: [{ date: "2025-01-01", pairs: [["user1", "user2", "user3"]] }],
 		};
 		expect(calculateRecencyPenalty("user1", "user2", history)).toBe(1);
 		expect(calculateRecencyPenalty("user2", "user3", history)).toBe(1);
@@ -402,7 +407,10 @@ describe("getRecentPairs", () => {
 			matches: [
 				{
 					date: "2025-01-01",
-					pairs: [["user1", "user2"], ["user3", "user4"]],
+					pairs: [
+						["user1", "user2"],
+						["user3", "user4"],
+					],
 				},
 			],
 		};
@@ -453,7 +461,10 @@ describe("generatePartition", () => {
 	test("모든 참여자가 포함된다", () => {
 		const participants = createParticipants(6);
 		const groups = generatePartition(participants, 2);
-		const allIds = groups.flat().map((p) => p.id).sort();
+		const allIds = groups
+			.flat()
+			.map((p) => p.id)
+			.sort();
 
 		expect(allIds).toEqual(participants.map((p) => p.id).sort());
 	});
@@ -480,10 +491,21 @@ describe("scorePartition", () => {
 		for (let i = 0; i < participants.length; i++) {
 			for (let j = i + 1; j < participants.length; j++) {
 				const key = [participants[i].id, participants[j].id].sort().join(",");
-				pairScores.set(key, calculatePairScore(participants[i].id, participants[j].id, history, stats));
+				pairScores.set(
+					key,
+					calculatePairScore(
+						participants[i].id,
+						participants[j].id,
+						history,
+						stats,
+					),
+				);
 			}
 		}
-		const groups = [[participants[0], participants[1]], [participants[2], participants[3]]];
+		const groups = [
+			[participants[0], participants[1]],
+			[participants[2], participants[3]],
+		];
 
 		const score = scorePartition(groups, recentPairs, pairScores);
 
@@ -501,10 +523,21 @@ describe("scorePartition", () => {
 		for (let i = 0; i < participants.length; i++) {
 			for (let j = i + 1; j < participants.length; j++) {
 				const key = [participants[i].id, participants[j].id].sort().join(",");
-				pairScores.set(key, calculatePairScore(participants[i].id, participants[j].id, history, stats));
+				pairScores.set(
+					key,
+					calculatePairScore(
+						participants[i].id,
+						participants[j].id,
+						history,
+						stats,
+					),
+				);
 			}
 		}
-		const groups = [[participants[0], participants[1]], [participants[2], participants[3]]];
+		const groups = [
+			[participants[0], participants[1]],
+			[participants[2], participants[3]],
+		];
 
 		const score = scorePartition(groups, recentPairs, pairScores);
 
@@ -521,7 +554,10 @@ describe("findBestPartition", () => {
 
 		expect(groups).toHaveLength(3);
 		expect(groups.every((g) => g.length === 2)).toBe(true);
-		const allIds = groups.flat().map((p) => p.id).sort();
+		const allIds = groups
+			.flat()
+			.map((p) => p.id)
+			.sort();
 		expect(allIds).toEqual(participants.map((p) => p.id).sort());
 	});
 
@@ -531,7 +567,10 @@ describe("findBestPartition", () => {
 			matches: [
 				{
 					date: "2025-01-01",
-					pairs: [["user1", "user2"], ["user3", "user4"]],
+					pairs: [
+						["user1", "user2"],
+						["user3", "user4"],
+					],
 				},
 			],
 		};
@@ -540,7 +579,10 @@ describe("findBestPartition", () => {
 		for (let i = 0; i < 20; i++) {
 			const groups = findBestPartition(participants, history, { groupSize: 2 });
 			const pairKeys = groups.map((g) =>
-				g.map((p) => p.id).sort().join(","),
+				g
+					.map((p) => p.id)
+					.sort()
+					.join(","),
 			);
 			// 직전 라운드의 개별 페어가 나오면 안 됨
 			expect(pairKeys).not.toContain("user1,user2");
@@ -552,9 +594,7 @@ describe("findBestPartition", () => {
 		// 2명만 있으면 유일한 파티션이 직전 매칭과 동일
 		const participants = createParticipants(2);
 		const history: MatchHistory = {
-			matches: [
-				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
-			],
+			matches: [{ date: "2025-01-01", pairs: [["user1", "user2"]] }],
 		};
 
 		const groups = findBestPartition(participants, history, { groupSize: 2 });
@@ -681,12 +721,42 @@ describe("통계적 검증", () => {
 		const participants = createParticipants(4);
 		const history: MatchHistory = {
 			matches: [
-				{ date: "2025-01-01", pairs: [["user1", "user3"], ["user2", "user4"]] },
-				{ date: "2025-01-08", pairs: [["user1", "user4"], ["user2", "user3"]] },
-				{ date: "2025-01-15", pairs: [["user1", "user3"], ["user2", "user4"]] },
-				{ date: "2025-01-22", pairs: [["user1", "user4"], ["user2", "user3"]] },
+				{
+					date: "2025-01-01",
+					pairs: [
+						["user1", "user3"],
+						["user2", "user4"],
+					],
+				},
+				{
+					date: "2025-01-08",
+					pairs: [
+						["user1", "user4"],
+						["user2", "user3"],
+					],
+				},
+				{
+					date: "2025-01-15",
+					pairs: [
+						["user1", "user3"],
+						["user2", "user4"],
+					],
+				},
+				{
+					date: "2025-01-22",
+					pairs: [
+						["user1", "user4"],
+						["user2", "user3"],
+					],
+				},
 				// 직전: user1-user2, user3-user4 (하드 제외 대상)
-				{ date: "2025-01-29", pairs: [["user1", "user2"], ["user3", "user4"]] },
+				{
+					date: "2025-01-29",
+					pairs: [
+						["user1", "user2"],
+						["user3", "user4"],
+					],
+				},
 			],
 		};
 
@@ -701,7 +771,10 @@ describe("통계적 검증", () => {
 		for (let i = 0; i < iterations; i++) {
 			const pairs = createMatches(participants, history);
 			const pairKeys = pairs.map((pair) =>
-				pair.map((p) => p.id).sort().join(","),
+				pair
+					.map((p) => p.id)
+					.sort()
+					.join(","),
 			);
 			if (pairKeys.includes("user1,user3")) {
 				user1user3Count++;
@@ -732,7 +805,10 @@ describe("성능", () => {
 
 		expect(elapsed).toBeLessThan(500);
 		expect(groups.length).toBeGreaterThan(0);
-		const allIds = groups.flat().map((p) => p.id).sort();
+		const allIds = groups
+			.flat()
+			.map((p) => p.id)
+			.sort();
 		expect(allIds).toEqual(participants.map((p) => p.id).sort());
 	});
 });
