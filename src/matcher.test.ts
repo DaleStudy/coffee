@@ -3,6 +3,7 @@ import {
 	buildGroupCandidates,
 	calculateExperienceStats,
 	calculatePairScore,
+	calculateRecencyPenalty,
 	createMatches,
 	getExperienceLevel,
 	getExperienceMixScore,
@@ -245,6 +246,46 @@ describe("getMeetingCount", () => {
 		expect(getMeetingCount("user1", "user2", history)).toBe(1);
 		expect(getMeetingCount("user1", "user3", history)).toBe(1);
 		expect(getMeetingCount("user2", "user3", history)).toBe(1);
+	});
+});
+
+describe("calculateRecencyPenalty", () => {
+	test("만난 적 없으면 0을 반환한다", () => {
+		const history: MatchHistory = { matches: [] };
+		expect(calculateRecencyPenalty("user1", "user2", history)).toBe(0);
+	});
+
+	test("직전 라운드에서 만났으면 1.0을 반환한다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
+			],
+		};
+		expect(calculateRecencyPenalty("user1", "user2", history)).toBe(1);
+	});
+
+	test("여러 라운드에서 만났으면 1/roundsAgo 합산을 반환한다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{ date: "2025-01-01", pairs: [["user1", "user2"]] }, // roundsAgo=3
+				{ date: "2025-01-08", pairs: [["user1", "user3"]] }, // roundsAgo=2
+				{ date: "2025-01-15", pairs: [["user1", "user2"]] }, // roundsAgo=1
+			],
+		};
+		// penalty = 1/1 + 1/3 = 1.333...
+		expect(calculateRecencyPenalty("user1", "user2", history)).toBeCloseTo(1 + 1 / 3, 5);
+		// penalty = 1/2
+		expect(calculateRecencyPenalty("user1", "user3", history)).toBeCloseTo(1 / 2, 5);
+	});
+
+	test("3인조에서 만남도 카운트한다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{ date: "2025-01-01", pairs: [["user1", "user2", "user3"]] },
+			],
+		};
+		expect(calculateRecencyPenalty("user1", "user2", history)).toBe(1);
+		expect(calculateRecencyPenalty("user2", "user3", history)).toBe(1);
 	});
 });
 

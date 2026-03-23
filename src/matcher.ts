@@ -83,6 +83,32 @@ export function getMeetingCount(
 }
 
 /**
+ * 두 사람의 recency 기반 만남 페널티 계산
+ * penalty = Σ(1 / roundsAgo) for each round where they met
+ * roundsAgo = totalRounds - matchIndex (1-indexed, most recent = 1)
+ */
+export function calculateRecencyPenalty(
+	idA: string,
+	idB: string,
+	history: MatchHistory,
+): number {
+	const totalRounds = history.matches.length;
+	let penalty = 0;
+
+	for (let i = 0; i < totalRounds; i++) {
+		const match = history.matches[i];
+		for (const pair of match.pairs) {
+			if (pair.includes(idA) && pair.includes(idB)) {
+				const roundsAgo = totalRounds - i;
+				penalty += 1 / roundsAgo;
+			}
+		}
+	}
+
+	return penalty;
+}
+
+/**
  * 참여자들의 경험 통계 계산 (각 참여자의 총 매칭 횟수)
  */
 export function calculateExperienceStats(
