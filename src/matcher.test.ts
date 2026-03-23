@@ -74,7 +74,7 @@ describe("createMatches", () => {
 		expect(matchedIds.sort()).toEqual(participants.map((p) => p.id).sort());
 	});
 
-	test("최근 매칭 이력이 있으면 같은 조를 피한다", () => {
+	test("직전 라운드 페어가 같은 조에 배치되지 않는다", () => {
 		const participants = createParticipants(4);
 		const history: MatchHistory = {
 			matches: [
@@ -88,27 +88,18 @@ describe("createMatches", () => {
 			],
 		};
 
-		// 여러 번 실행해서 이력과 다른 매칭이 나오는지 확인
-		let foundDifferentPairing = false;
-		for (let i = 0; i < 50; i++) {
+		// 4명 2인조: 가능한 조합은 (1-2,3-4), (1-3,2-4), (1-4,2-3)
+		// 직전 라운드의 페어 user1-user2와 user3-user4는 하드 제외
+		// 따라서 (1-3,2-4) 또는 (1-4,2-3)만 가능
+		for (let i = 0; i < 20; i++) {
 			const pairs = createMatches(participants, history);
 			const pairKeys = pairs.map((pair) =>
-				pair
-					.map((p) => p.id)
-					.sort()
-					.join(","),
+				pair.map((p) => p.id).sort().join(","),
 			);
 
-			if (
-				!pairKeys.includes("user1,user2") &&
-				!pairKeys.includes("user3,user4")
-			) {
-				foundDifferentPairing = true;
-				break;
-			}
+			expect(pairKeys).not.toContain("user1,user2");
+			expect(pairKeys).not.toContain("user3,user4");
 		}
-
-		expect(foundDifferentPairing).toBe(true);
 	});
 
 	test("2명일 때 1개 조가 생성된다", () => {
