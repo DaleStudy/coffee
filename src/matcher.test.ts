@@ -379,7 +379,7 @@ describe("getExperienceMixScore", () => {
 });
 
 describe("calculatePairScore", () => {
-	test("만남 횟수가 적고 경험 믹싱이 좋으면 높은 점수", () => {
+	test("만남 이력이 없고 경험 믹싱이 좋으면 높은 점수", () => {
 		const history: MatchHistory = { matches: [] };
 		const stats = {
 			matchCounts: new Map([
@@ -390,13 +390,13 @@ describe("calculatePairScore", () => {
 		};
 
 		const score = calculatePairScore("user1", "user2", history, stats);
-		// meetingScore = 1/(1+0) = 1.0
+		// recencyPenalty = 0, meetingScore = 1/(1+0) = 1.0
 		// mixScore = 1.0 (newcomer-veteran)
 		// total = 1.0 * 0.6 + 1.0 * 0.4 = 1.0
 		expect(score).toBe(1.0);
 	});
 
-	test("만남 횟수가 많으면 점수가 낮아진다", () => {
+	test("최근 만남이 많으면 점수가 낮아진다", () => {
 		const history: MatchHistory = {
 			matches: [
 				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
@@ -412,10 +412,37 @@ describe("calculatePairScore", () => {
 		};
 
 		const score = calculatePairScore("user1", "user2", history, stats);
-		// meetingScore = 1/(1+2) = 0.333...
+		// recencyPenalty = 1/1 + 1/2 = 1.5
+		// meetingScore = 1/(1+1.5) = 0.4
 		// mixScore = 0.6 (regular-regular)
-		// total = 0.333 * 0.6 + 0.6 * 0.4 = 0.2 + 0.24 = 0.44
-		expect(score).toBeCloseTo(0.44, 2);
+		// total = 0.4 * 0.6 + 0.6 * 0.4 = 0.24 + 0.24 = 0.48
+		expect(score).toBeCloseTo(0.48, 2);
+	});
+
+	test("오래된 만남은 페널티가 작다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
+				{ date: "2025-01-08", pairs: [["user1", "user3"]] },
+				{ date: "2025-01-15", pairs: [["user1", "user3"]] },
+				{ date: "2025-01-22", pairs: [["user1", "user3"]] },
+				{ date: "2025-01-29", pairs: [["user1", "user3"]] },
+			],
+		};
+		const stats = {
+			matchCounts: new Map([
+				["user1", 5],
+				["user2", 5],
+			]),
+			maxCount: 10,
+		};
+
+		const score = calculatePairScore("user1", "user2", history, stats);
+		// recencyPenalty = 1/5 = 0.2 (met in oldest round only)
+		// meetingScore = 1/(1+0.2) = 0.833...
+		// mixScore = 0.6 (regular-regular)
+		// total = 0.833 * 0.6 + 0.6 * 0.4 = 0.5 + 0.24 = 0.74
+		expect(score).toBeCloseTo(0.74, 2);
 	});
 });
 

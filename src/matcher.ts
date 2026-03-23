@@ -193,8 +193,8 @@ export function calculatePairScore(
 	history: MatchHistory,
 	stats: ExperienceStats,
 ): number {
-	const meetingCount = getMeetingCount(idA, idB, history);
-	const meetingScore = 1 / (1 + meetingCount);
+	const recencyPenalty = calculateRecencyPenalty(idA, idB, history);
+	const meetingScore = 1 / (1 + recencyPenalty);
 	const mixScore = getExperienceMixScore(idA, idB, stats);
 
 	return meetingScore * 0.6 + mixScore * 0.4;
