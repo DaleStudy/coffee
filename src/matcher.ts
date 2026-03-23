@@ -40,6 +40,10 @@ export function shuffle<T>(array: T[]): T[] {
 	return result;
 }
 
+function pairKey(idA: string, idB: string): string {
+	return idA < idB ? `${idA},${idB}` : `${idB},${idA}`;
+}
+
 /**
  * 최근 lookback 라운드의 모든 페어를 Set으로 반환
  * 페어 키는 "id1,id2" 형식 (정렬됨)
@@ -55,8 +59,7 @@ export function getRecentPairs(
 		for (const group of match.pairs) {
 			for (let i = 0; i < group.length; i++) {
 				for (let j = i + 1; j < group.length; j++) {
-					const key = [group[i], group[j]].sort().join(",");
-					pairs.add(key);
+					pairs.add(pairKey(group[i], group[j]));
 				}
 			}
 		}
@@ -220,14 +223,31 @@ interface PartitionScore {
 }
 
 /**
+ * 모든 페어의 점수를 미리 계산하여 Map으로 반환
+ */
+function precomputePairScores(
+	participants: Participant[],
+	history: MatchHistory,
+	stats: ExperienceStats,
+): Map<string, number> {
+	const scores = new Map<string, number>();
+	for (let i = 0; i < participants.length; i++) {
+		for (let j = i + 1; j < participants.length; j++) {
+			const key = pairKey(participants[i].id, participants[j].id);
+			scores.set(key, calculatePairScore(participants[i].id, participants[j].id, history, stats));
+		}
+	}
+	return scores;
+}
+
+/**
  * 파티션의 총점 계산 + 하드 제외 위반 여부 확인
  * total = Σ(그룹 내 모든 페어의 pairScore)
  */
 export function scorePartition(
 	groups: Participant[][],
-	history: MatchHistory,
-	stats: ExperienceStats,
 	recentPairs: Set<string>,
+	pairScores: Map<string, number>,
 ): PartitionScore {
 	let total = 0;
 	let hasViolation = false;
@@ -235,8 +255,8 @@ export function scorePartition(
 	for (const group of groups) {
 		for (let i = 0; i < group.length; i++) {
 			for (let j = i + 1; j < group.length; j++) {
-				total += calculatePairScore(group[i].id, group[j].id, history, stats);
-				const key = [group[i].id, group[j].id].sort().join(",");
+				const key = pairKey(group[i].id, group[j].id);
+				total += pairScores.get(key) ?? 0;
 				if (recentPairs.has(key)) {
 					hasViolation = true;
 				}
@@ -266,6 +286,7 @@ export function findBestPartition(
 	const { groupSize = 2 } = options;
 	const stats = calculateExperienceStats(participants, history);
 	const recentPairs = getRecentPairs(history, 1);
+	const pairScores = precomputePairScores(participants, history, stats);
 	const trials = getTrialCount(participants.length);
 
 	let bestValid: { groups: Participant[][]; score: number } | null = null;
@@ -273,7 +294,7 @@ export function findBestPartition(
 
 	for (let i = 0; i < trials; i++) {
 		const groups = generatePartition(participants, groupSize);
-		const result = scorePartition(groups, history, stats, recentPairs);
+		const result = scorePartition(groups, recentPairs, pairScores);
 
 		if (!bestAny || result.total > bestAny.score) {
 			bestAny = { groups, score: result.total };

@@ -474,12 +474,19 @@ describe("scorePartition", () => {
 		const history: MatchHistory = { matches: [] };
 		const stats = calculateExperienceStats(participants, history);
 		const recentPairs = new Set<string>();
-		const groups = [[participants[0], participants[1]], [participants[2], participants[3]]];
-
-		const score = scorePartition(groups, history, stats, recentPairs);
-
+		const pairScores = new Map<string, number>();
 		// 빈 히스토리에서 모든 meetingScore=1.0, 모든 mixScore=0.3 (newcomer-newcomer)
 		// pairScore = 1.0 * 0.6 + 0.3 * 0.4 = 0.72 per pair
+		for (let i = 0; i < participants.length; i++) {
+			for (let j = i + 1; j < participants.length; j++) {
+				const key = [participants[i].id, participants[j].id].sort().join(",");
+				pairScores.set(key, calculatePairScore(participants[i].id, participants[j].id, history, stats));
+			}
+		}
+		const groups = [[participants[0], participants[1]], [participants[2], participants[3]]];
+
+		const score = scorePartition(groups, recentPairs, pairScores);
+
 		// 2 groups × 1 pair each = 2 pairs total
 		expect(score.total).toBeCloseTo(0.72 * 2, 5);
 		expect(score.hasViolation).toBe(false);
@@ -490,9 +497,16 @@ describe("scorePartition", () => {
 		const history: MatchHistory = { matches: [] };
 		const stats = calculateExperienceStats(participants, history);
 		const recentPairs = new Set(["user1,user2"]);
+		const pairScores = new Map<string, number>();
+		for (let i = 0; i < participants.length; i++) {
+			for (let j = i + 1; j < participants.length; j++) {
+				const key = [participants[i].id, participants[j].id].sort().join(",");
+				pairScores.set(key, calculatePairScore(participants[i].id, participants[j].id, history, stats));
+			}
+		}
 		const groups = [[participants[0], participants[1]], [participants[2], participants[3]]];
 
-		const score = scorePartition(groups, history, stats, recentPairs);
+		const score = scorePartition(groups, recentPairs, pairScores);
 
 		expect(score.hasViolation).toBe(true);
 	});
@@ -522,16 +536,15 @@ describe("findBestPartition", () => {
 			],
 		};
 
-		// 여러 번 실행해서 직전 매칭이 반복되지 않는지 확인
+		// 여러 번 실행해서 직전 매칭 페어가 나오지 않는지 확인
 		for (let i = 0; i < 20; i++) {
 			const groups = findBestPartition(participants, history, { groupSize: 2 });
 			const pairKeys = groups.map((g) =>
 				g.map((p) => p.id).sort().join(","),
 			);
-			// 직전 라운드의 user1-user2와 user3-user4가 동시에 나오면 안 됨
-			expect(
-				pairKeys.includes("user1,user2") && pairKeys.includes("user3,user4"),
-			).toBe(false);
+			// 직전 라운드의 개별 페어가 나오면 안 됨
+			expect(pairKeys).not.toContain("user1,user2");
+			expect(pairKeys).not.toContain("user3,user4");
 		}
 	});
 
