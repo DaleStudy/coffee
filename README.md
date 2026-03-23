@@ -29,23 +29,23 @@ bun install
 
 ### 매칭 실행 (`bun run match`)
 
-| 환경변수 | 설명 | 필수 |
-|---------|------|------|
-| `DISCORD_BOT_TOKEN` | Discord Bot 토큰 (서버 멤버 조회 및 쓰레드 생성에 사용) | Yes |
-| `DISCORD_SERVER_ID` | Discord 서버(Guild) ID | Yes |
-| `FORCE_RUN` | `true`로 설정 시 스케줄 무시하고 즉시 실행 | No |
-| `DRY_RUN` | `true`로 설정 시 매칭 결과만 콘솔에 출력 (이력 저장/쓰레드 생성 스킵) | No |
-| `MATCH_ROLE` | 특정 역할만 매칭 (예: `coffee`) | No |
+| 환경변수            | 설명                                                                  | 필수 |
+| ------------------- | --------------------------------------------------------------------- | ---- |
+| `DISCORD_BOT_TOKEN` | Discord Bot 토큰 (서버 멤버 조회 및 쓰레드 생성에 사용)               | Yes  |
+| `DISCORD_SERVER_ID` | Discord 서버(Guild) ID                                                | Yes  |
+| `FORCE_RUN`         | `true`로 설정 시 스케줄 무시하고 즉시 실행                            | No   |
+| `DRY_RUN`           | `true`로 설정 시 매칭 결과만 콘솔에 출력 (이력 저장/쓰레드 생성 스킵) | No   |
+| `MATCH_ROLE`        | 특정 역할만 매칭 (예: `coffee`)                                       | No   |
 
 ### Worker (`worker/`)
 
-| 환경변수 | 설명 | 설정 위치 |
-|---------|------|----------|
-| `DISCORD_PUBLIC_KEY` | Discord 요청 서명 검증용 공개키 | `wrangler.jsonc` |
-| `DISCORD_APPLICATION_ID` | Discord 앱 ID (슬래시 명령어 등록) | `wrangler.jsonc` |
-| `DISCORD_SERVER_ID` | Discord 서버 ID | `wrangler.jsonc` |
-| `DISCORD_ROLE_ID` | 커피챗 Role ID | `wrangler.jsonc` |
-| `DISCORD_BOT_TOKEN` | Discord Bot 토큰 | `wrangler secret` |
+| 환경변수                 | 설명                               | 설정 위치         |
+| ------------------------ | ---------------------------------- | ----------------- |
+| `DISCORD_PUBLIC_KEY`     | Discord 요청 서명 검증용 공개키    | `wrangler.jsonc`  |
+| `DISCORD_APPLICATION_ID` | Discord 앱 ID (슬래시 명령어 등록) | `wrangler.jsonc`  |
+| `DISCORD_SERVER_ID`      | Discord 서버 ID                    | `wrangler.jsonc`  |
+| `DISCORD_ROLE_ID`        | 커피챗 Role ID                     | `wrangler.jsonc`  |
+| `DISCORD_BOT_TOKEN`      | Discord Bot 토큰                   | `wrangler secret` |
 
 > 매칭 결과를 발표할 채널 ID와 참여자 Role ID는 `data/roles.json`에서 관리합니다.
 
@@ -54,6 +54,7 @@ bun install
 1. Repository Settings > Secrets and variables > Actions
 2. **Secrets** 탭에서 추가:
    - `DISCORD_BOT_TOKEN`
+   - `CLOUDFLARE_API_TOKEN` — Worker 자동 배포용 ([발급 방법](https://dash.cloudflare.com/profile/api-tokens)에서 "Edit Cloudflare Workers" 템플릿 사용)
 3. **Variables** 탭에서 추가:
    - `DISCORD_SERVER_ID`
 
@@ -65,6 +66,16 @@ bun install
 2. "New Application" 클릭하여 앱 생성
 3. Bot 메뉴에서 "Add Bot" 클릭
 4. "Reset Token"으로 토큰 발급 → `DISCORD_BOT_TOKEN`으로 사용
+
+### Bot 토큰 업데이트
+
+Discord Developer Portal에서 토큰을 재발급하면 아래 **3곳 모두** 업데이트해야 합니다:
+
+| 위치                         | 업데이트 방법                                             |
+| ---------------------------- | --------------------------------------------------------- |
+| **GitHub Actions Secret**    | `gh secret set DISCORD_BOT_TOKEN`                         |
+| **Cloudflare Worker Secret** | `cd worker && bunx wrangler secret put DISCORD_BOT_TOKEN` |
+| **로컬 개발 환경**           | `worker/.dev.vars` 파일의 `DISCORD_BOT_TOKEN=` 값 수정    |
 
 ### Bot 권한 설정
 
@@ -138,12 +149,12 @@ gh workflow run match.yml
 
 ### 핵심 원칙
 
-| 원칙 | 설명 |
-|-----|------|
-| **2인 1조** | 기본적으로 2명씩 매칭 |
-| **중복 방지** | 최근 4회 이력 내 같은 조합 불가 |
+| 원칙                    | 설명                                       |
+| ----------------------- | ------------------------------------------ |
+| **2인 1조**             | 기본적으로 2명씩 매칭                      |
+| **중복 방지**           | 최근 4회 이력 내 같은 조합 불가            |
 | **적게 만난 사람 우선** | 과거에 적게 만난 사람일수록 매칭 확률 증가 |
-| **경험 믹싱** | 신규 멤버와 경험 많은 멤버가 섞이도록 유도 |
+| **경험 믹싱**           | 신규 멤버와 경험 많은 멤버가 섞이도록 유도 |
 
 ### 점수 기반 매칭
 
@@ -158,11 +169,11 @@ gh workflow run match.yml
 ```
 
 | 만남 횟수 | 점수 |
-|----------|------|
-| 0회 | 1.0 |
-| 1회 | 0.5 |
-| 2회 | 0.33 |
-| 3회 | 0.25 |
+| --------- | ---- |
+| 0회       | 1.0  |
+| 1회       | 0.5  |
+| 2회       | 0.33 |
+| 3회       | 0.25 |
 
 #### 경험 믹싱 점수
 
@@ -172,11 +183,11 @@ gh workflow run match.yml
 - **Regular**: 중간 50%
 - **Veteran**: 상위 25% (참여 횟수 많음)
 
-| A \ B | Newcomer | Regular | Veteran |
-|-------|----------|---------|---------|
-| Newcomer | **0.3** | 0.8 | **1.0** |
-| Regular | 0.8 | 0.6 | 0.8 |
-| Veteran | **1.0** | 0.8 | 0.5 |
+| A \ B    | Newcomer | Regular | Veteran |
+| -------- | -------- | ------- | ------- |
+| Newcomer | **0.3**  | 0.8     | **1.0** |
+| Regular  | 0.8      | 0.6     | 0.8     |
+| Veteran  | **1.0**  | 0.8     | 0.5     |
 
 → 신규+신규 = 낮은 점수 (0.3), 신규+베테랑 = 높은 점수 (1.0)
 
@@ -237,10 +248,34 @@ B-D 점수: 만남0회(1.0×0.6) + 신규-신규(0.3×0.4) = 0.72
 // history.json 예시
 {
   "matches": [
-    { "date": "2024-01-01", "pairs": [["A","B"], ["C","D"]] },
-    { "date": "2024-01-15", "pairs": [["A","C"], ["B","D"]] },
-    { "date": "2024-01-29", "pairs": [["A","D"], ["B","C"]] },
-    { "date": "2024-02-12", "pairs": [["A","B"], ["C","D"]] }
+    {
+      "date": "2024-01-01",
+      "pairs": [
+        ["A", "B"],
+        ["C", "D"]
+      ]
+    },
+    {
+      "date": "2024-01-15",
+      "pairs": [
+        ["A", "C"],
+        ["B", "D"]
+      ]
+    },
+    {
+      "date": "2024-01-29",
+      "pairs": [
+        ["A", "D"],
+        ["B", "C"]
+      ]
+    },
+    {
+      "date": "2024-02-12",
+      "pairs": [
+        ["A", "B"],
+        ["C", "D"]
+      ]
+    }
   ]
 }
 ```
@@ -253,10 +288,10 @@ B-D 점수: 만남0회(1.0×0.6) + 신규-신규(0.3×0.4) = 0.72
 
 ## 제약사항 및 향후 계획
 
-| 현재 제약사항 | 개선 방향 |
-|-------------|----------|
-| JSON 파일 기반 저장 (동시성 제어 없음, 스케일링 한계) | PostgreSQL/MongoDB로 마이그레이션 |
-| GitHub Actions 실행 (매칭 주기 변경 시 코드 수정 필요) | 설정 관리 시스템 |
+| 현재 제약사항                                          | 개선 방향                         |
+| ------------------------------------------------------ | --------------------------------- |
+| JSON 파일 기반 저장 (동시성 제어 없음, 스케일링 한계)  | PostgreSQL/MongoDB로 마이그레이션 |
+| GitHub Actions 실행 (매칭 주기 변경 시 코드 수정 필요) | 설정 관리 시스템                  |
 
 ## 개발
 
@@ -287,7 +322,15 @@ bun run worker:register
 
 `/coffee join`, `/coffee leave` 명령어는 Cloudflare Workers로 처리됩니다.
 
-#### 최초 배포
+#### 자동 배포
+
+`worker/` 디렉토리 내 파일이 변경되어 `main` 브랜치에 push되면 GitHub Actions가 자동으로 배포합니다.
+
+> 현재 배포 URL: `https://coffee.dalestudy.workers.dev`
+
+#### 최초 설정
+
+새로운 환경에 처음 배포할 때만 필요합니다.
 
 ```bash
 # 1. 의존성 설치
@@ -307,8 +350,6 @@ bun run register-commands
 ```
 
 마지막으로 [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택 → General Information → **Interactions Endpoint URL**에 배포된 URL을 입력합니다.
-
-> 현재 배포 URL: `https://coffee.dalestudy.workers.dev`
 
 #### 멤버 추가 (Cloudflare 계정)
 
