@@ -419,6 +419,46 @@ export function scorePartition(
 	return { total, hasViolation };
 }
 
+function getTrialCount(participantCount: number): number {
+	if (participantCount <= 16) return 5000;
+	if (participantCount <= 30) return 2000;
+	return 1000;
+}
+
+/**
+ * Best-of-N 파티션 탐색으로 최적 매칭을 찾는다
+ * N개 파티션을 생성하여 하드 제외를 만족하는 최고점 파티션을 반환
+ * 모든 파티션이 하드 제외를 위반하면 최고점 파티션을 fallback으로 반환
+ */
+export function findBestPartition(
+	participants: Participant[],
+	history: MatchHistory,
+	options: MatchingOptions = {},
+): Participant[][] {
+	const { groupSize = 2 } = options;
+	const stats = calculateExperienceStats(participants, history);
+	const recentPairs = getRecentPairs(history, 1);
+	const trials = getTrialCount(participants.length);
+
+	let bestValid: { groups: Participant[][]; score: number } | null = null;
+	let bestAny: { groups: Participant[][]; score: number } | null = null;
+
+	for (let i = 0; i < trials; i++) {
+		const groups = generatePartition(participants, groupSize);
+		const result = scorePartition(groups, history, stats, recentPairs);
+
+		if (!bestAny || result.total > bestAny.score) {
+			bestAny = { groups, score: result.total };
+		}
+
+		if (!result.hasViolation && (!bestValid || result.total > bestValid.score)) {
+			bestValid = { groups, score: result.total };
+		}
+	}
+
+	return (bestValid ?? bestAny)!.groups;
+}
+
 export function createMatches(
 	participants: Participant[],
 	history: MatchHistory,

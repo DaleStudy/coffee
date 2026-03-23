@@ -5,6 +5,7 @@ import {
 	calculatePairScore,
 	calculateRecencyPenalty,
 	createMatches,
+	findBestPartition,
 	generatePartition,
 	getExperienceLevel,
 	getExperienceMixScore,
@@ -620,6 +621,58 @@ describe("scorePartition", () => {
 		const score = scorePartition(groups, history, stats, recentPairs);
 
 		expect(score.hasViolation).toBe(true);
+	});
+});
+
+describe("findBestPartition", () => {
+	test("유효한 파티션을 반환한다", () => {
+		const participants = createParticipants(6);
+		const history: MatchHistory = { matches: [] };
+
+		const groups = findBestPartition(participants, history, { groupSize: 2 });
+
+		expect(groups).toHaveLength(3);
+		expect(groups.every((g) => g.length === 2)).toBe(true);
+		const allIds = groups.flat().map((p) => p.id).sort();
+		expect(allIds).toEqual(participants.map((p) => p.id).sort());
+	});
+
+	test("하드 제외 위반 파티션을 피한다", () => {
+		const participants = createParticipants(4);
+		const history: MatchHistory = {
+			matches: [
+				{
+					date: "2025-01-01",
+					pairs: [["user1", "user2"], ["user3", "user4"]],
+				},
+			],
+		};
+
+		// 여러 번 실행해서 직전 매칭이 반복되지 않는지 확인
+		for (let i = 0; i < 20; i++) {
+			const groups = findBestPartition(participants, history, { groupSize: 2 });
+			const pairKeys = groups.map((g) =>
+				g.map((p) => p.id).sort().join(","),
+			);
+			// 직전 라운드의 user1-user2와 user3-user4가 동시에 나오면 안 됨
+			expect(
+				pairKeys.includes("user1,user2") && pairKeys.includes("user3,user4"),
+			).toBe(false);
+		}
+	});
+
+	test("대안이 없으면 fallback으로 최선 파티션 반환", () => {
+		// 2명만 있으면 유일한 파티션이 직전 매칭과 동일
+		const participants = createParticipants(2);
+		const history: MatchHistory = {
+			matches: [
+				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
+			],
+		};
+
+		const groups = findBestPartition(participants, history, { groupSize: 2 });
+		expect(groups).toHaveLength(1);
+		expect(groups[0]).toHaveLength(2);
 	});
 });
 
