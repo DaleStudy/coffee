@@ -15,8 +15,8 @@ import DiscordMockup from "./DiscordMockup.astro";
 				연결합니다. 슬래시 명령어 하나로 시작하세요.
 			</p>
 			<div class="hero-cta">
-				<a href="#" class="btn btn-primary btn-lg">
-					디스코드에 추가하기
+				<a href="/docs/how-to-join" class="btn btn-primary btn-lg">
+					시작하기
 					<span aria-hidden="true">&rarr;</span>
 				</a>
 				<a
@@ -53,17 +53,17 @@ import DiscordMockup from "./DiscordMockup.astro";
 		inset: 0;
 		background: linear-gradient(
 			160deg,
-			#f0f7ff 0%,
-			#f9fafb 50%,
-			#ffffff 100%
+			var(--color-bg-warm) 0%,
+			var(--color-primary-light) 40%,
+			var(--color-bg) 100%
 		);
 	}
 
 	.hero-dots {
 		position: absolute;
 		inset: 0;
-		opacity: 0.25;
-		background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+		opacity: 0.15;
+		background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
 		background-size: 24px 24px;
 	}
 

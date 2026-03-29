@@ -137,6 +137,7 @@ const { variant = "match-result" } = Astro.props;
 		color: #dbdee1;
 		width: 100%;
 		max-width: 480px;
+		min-width: 0;
 	}
 
 	.discord-header {
@@ -195,6 +196,7 @@ const { variant = "match-result" } = Astro.props;
 	.discord-content {
 		flex: 1;
 		min-width: 0;
+		overflow-wrap: break-word;
 	}
 
 	.discord-author {
@@ -255,6 +257,8 @@ const { variant = "match-result" } = Astro.props;
 
 	.embed-content {
 		flex: 1;
+		min-width: 0;
+		overflow-wrap: break-word;
 	}
 
 	.embed-title {

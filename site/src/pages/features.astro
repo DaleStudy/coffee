@@ -128,6 +128,17 @@ const features = [
 		gap: 2rem;
 	}
 
+	.grid > :first-child,
+	.grid > :nth-child(2) {
+		grid-column: span 1;
+	}
+
+	@media (min-width: 769px) {
+		.grid > :first-child {
+			grid-column: 1 / 3;
+		}
+	}
+
 	.roadmap {
 		background: var(--color-bg-light);
 	}
@@ -165,7 +176,7 @@ const features = [
 		border-radius: var(--radius-sm);
 		font-size: 0.75rem;
 		font-weight: 600;
-		background: rgba(0, 115, 206, 0.1);
+		background: rgba(180, 83, 9, 0.1);
 		color: var(--color-primary);
 		margin-bottom: 0.75rem;
 	}
