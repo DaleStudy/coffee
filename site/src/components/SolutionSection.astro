@@ -1,0 +1,109 @@
+---
+import DiscordMockup from "./DiscordMockup.astro";
+
+const benefits = [
+	"참여자를 자동으로 매칭",
+	"중복 방지 알고리즘 내장",
+	"매칭 결과 자동 공지",
+	"슬래시 명령어로 간편 관리",
+];
+---
+
+<section class="solution section">
+	<div class="container solution-inner">
+		<div class="solution-content">
+			<h2>커뮤니티 연결,<br />자동화하세요</h2>
+			<p class="solution-desc">
+				Coffee Chat 봇이 모든 과정을 처리합니다. 운영자는 설정만 하면
+				됩니다.
+			</p>
+			<ul class="benefits-list">
+				{
+					benefits.map((b) => (
+						<li>
+							<svg
+								width="20"
+								height="20"
+								viewBox="0 0 20 20"
+								fill="none"
+							>
+								<path
+									d="M4 10l4 4 8-8"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								/>
+							</svg>
+							{b}
+						</li>
+					))
+				}
+			</ul>
+			<a href="/features" class="btn btn-primary btn-lg">
+				기능 살펴보기
+				<span aria-hidden="true">&rarr;</span>
+			</a>
+		</div>
+		<div class="solution-visual">
+			<DiscordMockup variant="join-command" />
+		</div>
+	</div>
+</section>
+
+<style>
+	.solution-inner {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 5rem;
+		align-items: center;
+	}
+
+	.solution-content h2 {
+		margin-bottom: 1.25rem;
+	}
+
+	.solution-desc {
+		color: var(--color-text-secondary);
+		font-size: 1.15rem;
+		line-height: 1.8;
+		margin-bottom: 2rem;
+	}
+
+	.benefits-list {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 2.5rem;
+	}
+
+	.benefits-list li {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		font-size: 1.05rem;
+		color: var(--color-text-secondary);
+	}
+
+	.benefits-list svg {
+		flex-shrink: 0;
+		color: var(--color-success);
+	}
+
+	.solution-visual {
+		display: flex;
+		justify-content: center;
+	}
+
+	@media (max-width: 900px) {
+		.solution-inner {
+			grid-template-columns: 1fr;
+			gap: 3rem;
+		}
+
+		.solution-visual {
+			order: -1;
+		}
+	}
+</style>

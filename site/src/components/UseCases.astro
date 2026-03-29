@@ -1,0 +1,153 @@
+---
+const useCases = [
+	{
+		icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`,
+		title: "스터디 그룹",
+		description:
+			"스터디원들 간 교류를 자동화하여 학습 동기를 높이고 네트워크를 확장합니다.",
+	},
+	{
+		icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>`,
+		title: "온보딩",
+		description:
+			"신규 멤버가 기존 멤버와 자연스럽게 만날 수 있도록 매칭하여 적응을 돕습니다.",
+	},
+	{
+		icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.657 2.686 3 6 3s6-1.343 6-3v-5"/></svg>`,
+		title: "멘토링",
+		description:
+			"경험 수준에 따라 멘토와 멘티를 자동 매칭하여 성장을 지원합니다.",
+	},
+	{
+		icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>`,
+		title: "리모트 커뮤니티",
+		description:
+			"온라인 커뮤니티에서 멤버 간 유대감을 만들고 소속감을 높입니다.",
+	},
+	{
+		icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`,
+		title: "다양성 & 포용",
+		description:
+			"다양한 배경의 멤버들이 서로 만날 수 있도록 매칭하여 포용적 문화를 만듭니다.",
+	},
+	{
+		icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>`,
+		title: "네트워킹",
+		description:
+			"직군, 관심사를 넘어선 새로운 연결을 만들어 커뮤니티를 더 풍요롭게 합니다.",
+	},
+];
+---
+
+<section class="use-cases section">
+	<div class="container">
+		<h2>다양한 목적에 활용하세요</h2>
+		<p class="use-cases-subtitle">
+			커피챗 매칭은 어떤 커뮤니티에서든 활용할 수 있습니다.
+		</p>
+		<div class="cases-grid">
+			{
+				useCases.map((uc) => (
+					<a href="/features" class="case-card">
+						<span class="case-icon" set:html={uc.icon} />
+						<h3>{uc.title}</h3>
+						<p>{uc.description}</p>
+						<span class="card-link">
+							자세히 보기 <span aria-hidden="true">&rarr;</span>
+						</span>
+					</a>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.use-cases {
+		background: var(--color-bg-light);
+	}
+
+	.use-cases h2 {
+		text-align: center;
+		margin-bottom: 0.75rem;
+	}
+
+	.use-cases-subtitle {
+		text-align: center;
+		color: var(--color-text-secondary);
+		font-size: 1.15rem;
+		margin-bottom: 4rem;
+	}
+
+	.cases-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5rem;
+	}
+
+	.case-card {
+		display: flex;
+		flex-direction: column;
+		padding: 2rem;
+		border-radius: var(--radius-lg);
+		background: var(--color-bg);
+		border: 1px solid var(--color-border);
+		transition:
+			transform 0.2s,
+			border-color 0.2s,
+			box-shadow 0.2s;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.case-card:hover {
+		transform: translateY(-4px);
+		border-color: var(--color-primary);
+		box-shadow: var(--shadow-lg);
+		text-decoration: none;
+	}
+
+	.case-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 52px;
+		height: 52px;
+		border-radius: var(--radius-md);
+		background: var(--color-primary-light);
+		color: var(--color-primary);
+		margin-bottom: 1.25rem;
+	}
+
+	.case-card h3 {
+		font-size: 1.15rem;
+		font-weight: 700;
+		margin-bottom: 0.5rem;
+	}
+
+	.case-card p {
+		color: var(--color-text-secondary);
+		font-size: 0.9rem;
+		line-height: 1.7;
+		flex: 1;
+	}
+
+	.card-link {
+		margin-top: 1.25rem;
+		color: var(--color-primary);
+		font-size: 0.875rem;
+		font-weight: 600;
+	}
+
+	@media (max-width: 768px) {
+		.cases-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.cases-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

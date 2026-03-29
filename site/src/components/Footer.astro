@@ -1,0 +1,153 @@
+---
+
+---
+
+<footer class="footer">
+	<div class="container footer-inner">
+		<div class="footer-brand">
+			<div class="footer-logo">
+				<span>☕</span> Coffee Chat
+			</div>
+			<p class="footer-desc">
+				디스코드 서버에서 커피챗 참여자를 자동으로 매칭해주는 오픈소스 봇입니다.
+				의미 있는 대화를 연결하여 커뮤니티 문화를 강화합니다.
+			</p>
+		</div>
+
+		<div class="footer-columns">
+			<div class="footer-col">
+				<h4>기능</h4>
+				<ul>
+					<li><a href="/features">기능 소개</a></li>
+					<li><a href="/features#algorithm">매칭 알고리즘</a></li>
+					<li><a href="/features#commands">슬래시 명령어</a></li>
+				</ul>
+			</div>
+			<div class="footer-col">
+				<h4>문서</h4>
+				<ul>
+					<li><a href="/docs/how-to-join">참여 방법</a></li>
+					<li><a href="/docs/schedule">매칭 스케줄</a></li>
+					<li><a href="/docs/etiquette">에티켓</a></li>
+				</ul>
+			</div>
+			<div class="footer-col">
+				<h4>커뮤니티</h4>
+				<ul>
+					<li>
+						<a
+							href="https://github.com/DaleStudy/coffee"
+							target="_blank"
+							rel="noopener noreferrer">GitHub</a
+						>
+					</li>
+					<li>
+						<a
+							href="https://github.com/DaleStudy/coffee/issues"
+							target="_blank"
+							rel="noopener noreferrer">이슈 제보</a
+						>
+					</li>
+					<li>
+						<a
+							href="https://github.com/DaleStudy"
+							target="_blank"
+							rel="noopener noreferrer">DaleStudy</a
+						>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="footer-bottom">
+		<div class="container">
+			<p>&copy; {new Date().getFullYear()} DaleStudy. MIT License.</p>
+		</div>
+	</div>
+</footer>
+
+<style>
+	.footer {
+		background: #1e293b;
+		color: var(--color-text-inverse);
+		padding: 4rem 0 0;
+	}
+
+	.footer-inner {
+		display: grid;
+		grid-template-columns: 1.5fr 2fr;
+		gap: 3rem;
+	}
+
+	.footer-logo {
+		font-size: 1.25rem;
+		font-weight: 700;
+		margin-bottom: 1rem;
+	}
+
+	.footer-desc {
+		color: rgba(255, 255, 255, 0.7);
+		font-size: 0.875rem;
+		line-height: 1.7;
+	}
+
+	.footer-columns {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 2rem;
+	}
+
+	.footer-col h4 {
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 1rem;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.footer-col ul {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.footer-col a {
+		color: rgba(255, 255, 255, 0.8);
+		font-size: 0.875rem;
+	}
+
+	.footer-col a:hover {
+		color: var(--color-text-inverse);
+	}
+
+	.footer-bottom {
+		margin-top: 3rem;
+		padding: 1.5rem 0;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.footer-bottom p {
+		font-size: 0.8125rem;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	@media (max-width: 768px) {
+		.footer-inner {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+
+		.footer-columns {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.footer-columns {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

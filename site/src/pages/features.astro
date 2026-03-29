@@ -1,0 +1,204 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import FeatureCard from "../components/FeatureCard.astro";
+
+const features = [
+	{
+		icon: "&#x1F9E0;",
+		title: "스마트 매칭 알고리즘",
+		description:
+			"중복 방지 + 경험 믹싱 알고리즘으로 매번 다양한 조합을 만들어냅니다. 최근 매칭 이력을 분석하여 같은 사람과 반복 매칭되는 것을 방지하고, 신규 멤버와 기존 멤버를 적절히 섞어줍니다.",
+		id: "algorithm",
+	},
+	{
+		icon: "&#x2328;&#xFE0F;",
+		title: "슬래시 명령어",
+		description:
+			"/coffee join으로 참여, /coffee leave로 탈퇴. 디스코드 네이티브 슬래시 명령어로 별도 사이트 방문 없이 디스코드 안에서 모든 것을 처리할 수 있습니다.",
+		id: "commands",
+	},
+	{
+		icon: "&#x23F0;",
+		title: "자동 스케줄링",
+		description:
+			"GitHub Actions로 격주 월요일마다 자동 실행됩니다. 운영자가 매번 수동으로 매칭할 필요가 없어요. 필요할 때는 수동 트리거로 즉시 실행도 가능합니다.",
+		id: "scheduling",
+	},
+	{
+		icon: "&#x1F465;",
+		title: "다중 그룹 지원",
+		description:
+			"하나의 서버에서 여러 커피챗 그룹을 독립적으로 운영할 수 있습니다. 각 그룹별로 매칭 주기, 그룹 크기, 대상 역할을 별도로 설정할 수 있어요.",
+		id: "groups",
+	},
+	{
+		icon: "&#x1F4CB;",
+		title: "매칭 이력 관리",
+		description:
+			"모든 매칭 결과가 JSON 파일로 자동 저장되고, GitHub PR로 자동 커밋됩니다. 투명한 이력 관리로 매칭 품질을 지속적으로 개선할 수 있습니다.",
+		id: "history",
+	},
+	{
+		icon: "&#x1F513;",
+		title: "오픈소스 & 무료",
+		description:
+			"MIT 라이선스로 완전히 무료입니다. 소스 코드를 자유롭게 수정하고, 여러분의 커뮤니티에 맞게 커스터마이징할 수 있습니다.",
+		id: "opensource",
+	},
+];
+---
+
+<BaseLayout title="기능" description="Coffee Chat 봇의 주요 기능을 소개합니다.">
+	<section class="features-hero section">
+		<div class="container">
+			<h1>기능 소개</h1>
+			<p class="features-subtitle">
+				커피챗 매칭에 필요한 모든 것을 갖추고 있습니다.
+			</p>
+		</div>
+	</section>
+
+	<section class="features-grid section">
+		<div class="container">
+			<div class="grid">
+				{
+					features.map((f) => (
+						<FeatureCard
+							icon={f.icon}
+							title={f.title}
+							description={f.description}
+							id={f.id}
+						/>
+					))
+				}
+			</div>
+		</div>
+	</section>
+
+	<section class="roadmap section">
+		<div class="container">
+			<h2>로드맵</h2>
+			<p class="roadmap-subtitle">
+				더 나은 커피챗 경험을 위해 계속 발전하고 있습니다.
+			</p>
+			<div class="roadmap-items">
+				<div class="roadmap-item">
+					<span class="roadmap-badge">계획</span>
+					<h3>매칭 알고리즘 개선</h3>
+					<p>Recency 감쇠 스코어링과 전역 최적화로 매칭 품질을 높입니다.</p>
+				</div>
+				<div class="roadmap-item">
+					<span class="roadmap-badge">계획</span>
+					<h3>실패 알림 시스템</h3>
+					<p>매칭 발표 실패 시 관리자에게 자동 알림을 보냅니다.</p>
+				</div>
+				<div class="roadmap-item">
+					<span class="roadmap-badge future">장기</span>
+					<h3>마켓플레이스 배포</h3>
+					<p>
+						Discord 마켓플레이스에서 누구나 설치할 수 있는 공식 봇으로
+						배포합니다.
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+</BaseLayout>
+
+<style>
+	.features-hero {
+		text-align: center;
+		padding-bottom: 2rem;
+		background: linear-gradient(
+			180deg,
+			var(--color-bg-light) 0%,
+			var(--color-bg) 100%
+		);
+	}
+
+	.features-subtitle {
+		font-size: 1.25rem;
+		color: var(--color-text-secondary);
+		margin-top: 1rem;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 2rem;
+	}
+
+	.roadmap {
+		background: var(--color-bg-light);
+	}
+
+	.roadmap h2 {
+		text-align: center;
+		margin-bottom: 0.75rem;
+	}
+
+	.roadmap-subtitle {
+		text-align: center;
+		color: var(--color-text-secondary);
+		font-size: 1.1rem;
+		margin-bottom: 3rem;
+	}
+
+	.roadmap-items {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 2rem;
+		max-width: 960px;
+		margin: 0 auto;
+	}
+
+	.roadmap-item {
+		padding: 2rem;
+		background: var(--color-bg);
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-border);
+	}
+
+	.roadmap-badge {
+		display: inline-block;
+		padding: 0.2rem 0.6rem;
+		border-radius: var(--radius-sm);
+		font-size: 0.75rem;
+		font-weight: 600;
+		background: rgba(0, 115, 206, 0.1);
+		color: var(--color-primary);
+		margin-bottom: 0.75rem;
+	}
+
+	.roadmap-badge.future {
+		background: rgba(77, 77, 77, 0.1);
+		color: var(--color-text-secondary);
+	}
+
+	.roadmap-item h3 {
+		font-size: 1.1rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.roadmap-item p {
+		color: var(--color-text-secondary);
+		font-size: 0.9rem;
+		line-height: 1.6;
+	}
+
+	@media (max-width: 768px) {
+		.grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.roadmap-items {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

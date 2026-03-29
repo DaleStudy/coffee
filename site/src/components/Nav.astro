@@ -1,0 +1,151 @@
+---
+
+---
+
+<nav class="nav">
+	<div class="container nav-inner">
+		<a href="/" class="logo">
+			<span class="logo-icon">☕</span>
+			<span class="logo-text">Coffee Chat</span>
+		</a>
+
+		<button class="hamburger" aria-label="메뉴 열기" aria-expanded="false">
+			<span></span>
+			<span></span>
+			<span></span>
+		</button>
+
+		<div class="nav-links">
+			<a href="/features">기능</a>
+			<a href="/docs">문서</a>
+			<a
+				href="https://github.com/DaleStudy/coffee"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				GitHub
+			</a>
+			<a href="#" class="btn btn-primary nav-cta">
+				디스코드에 추가하기
+				<span aria-hidden="true">&rarr;</span>
+			</a>
+		</div>
+	</div>
+</nav>
+
+<script>
+	const hamburger = document.querySelector(".hamburger");
+	const navLinks = document.querySelector(".nav-links");
+
+	hamburger?.addEventListener("click", () => {
+		const expanded = hamburger.getAttribute("aria-expanded") === "true";
+		hamburger.setAttribute("aria-expanded", String(!expanded));
+		navLinks?.classList.toggle("open");
+	});
+</script>
+
+<style>
+	.nav {
+		position: sticky;
+		top: 0;
+		z-index: 100;
+		background: var(--color-bg);
+		border-bottom: 1px solid var(--color-border);
+		height: var(--nav-height);
+		display: flex;
+		align-items: center;
+	}
+
+	.nav-inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+	}
+
+	.logo {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--color-text);
+	}
+
+	.logo:hover {
+		text-decoration: none;
+	}
+
+	.logo-icon {
+		font-size: 1.5rem;
+	}
+
+	.nav-links {
+		display: flex;
+		align-items: center;
+		gap: 2rem;
+	}
+
+	.nav-links a {
+		color: var(--color-text-secondary);
+		font-weight: 500;
+	}
+
+	.nav-links a:hover {
+		color: var(--color-text);
+		text-decoration: none;
+	}
+
+	.nav-cta {
+		padding: 0.6rem 1.5rem;
+		font-size: 0.875rem;
+		box-shadow: 0 2px 8px rgba(0, 115, 206, 0.3);
+	}
+
+	.hamburger {
+		display: none;
+		flex-direction: column;
+		gap: 5px;
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 4px;
+	}
+
+	.hamburger span {
+		display: block;
+		width: 24px;
+		height: 2px;
+		background: var(--color-text);
+		transition: transform 0.2s;
+	}
+
+	@media (max-width: 768px) {
+		.hamburger {
+			display: flex;
+		}
+
+		.nav-links {
+			display: none;
+			position: absolute;
+			top: var(--nav-height);
+			left: 0;
+			right: 0;
+			flex-direction: column;
+			background: var(--color-bg);
+			padding: 1.5rem;
+			gap: 1rem;
+			border-bottom: 1px solid var(--color-border);
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		}
+
+		.nav-links.open {
+			display: flex;
+		}
+
+		.nav-cta {
+			width: 100%;
+			justify-content: center;
+		}
+	}
+</style>

@@ -11,7 +11,10 @@
 		"typecheck": "tsc --noEmit",
 		"worker:dev": "cd worker && bun run dev",
 		"worker:deploy": "cd worker && bun run deploy",
-		"worker:register": "cd worker && bun run register-commands"
+		"worker:register": "cd worker && bun run register-commands",
+		"site:dev": "cd site && bun run dev",
+		"site:build": "cd site && bun run build",
+		"site:preview": "cd site && bun run preview"
 	},
 	"dependencies": {
 		"discord.js": "^14.25.1"

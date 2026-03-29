@@ -1,0 +1,79 @@
+---
+import { getCollection } from "astro:content";
+
+interface Props {
+	currentSlug?: string;
+}
+
+const { currentSlug } = Astro.props;
+const docs = await getCollection("docs");
+const sorted = docs.sort((a, b) => a.data.order - b.data.order);
+---
+
+<aside class="sidebar">
+	<nav>
+		<a href="/docs" class="sidebar-title">문서</a>
+		<ul>
+			{
+				sorted.map((doc) => (
+					<li>
+						<a
+							href={`/docs/${doc.id}`}
+							class:list={[{ active: currentSlug === doc.id }]}
+						>
+							{doc.data.title}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</nav>
+</aside>
+
+<style>
+	.sidebar {
+		position: sticky;
+		top: calc(var(--nav-height) + 2rem);
+		align-self: start;
+	}
+
+	.sidebar-title {
+		font-weight: 700;
+		font-size: 1rem;
+		color: var(--color-text);
+		display: block;
+		margin-bottom: 1rem;
+	}
+
+	.sidebar-title:hover {
+		text-decoration: none;
+	}
+
+	ul {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	a {
+		display: block;
+		padding: 0.4rem 0.75rem;
+		border-radius: var(--radius-sm);
+		color: var(--color-text-secondary);
+		font-size: 0.9rem;
+		transition: background-color 0.15s, color 0.15s;
+	}
+
+	a:hover {
+		background: var(--color-bg-light);
+		color: var(--color-text);
+		text-decoration: none;
+	}
+
+	a.active {
+		background: rgba(0, 115, 206, 0.08);
+		color: var(--color-primary);
+		font-weight: 600;
+	}
+</style>

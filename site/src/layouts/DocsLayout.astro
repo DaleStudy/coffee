@@ -1,0 +1,136 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import DocsSidebar from "../components/DocsSidebar.astro";
+
+interface Props {
+	title: string;
+	description?: string;
+	currentSlug?: string;
+}
+
+const { title, description, currentSlug } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+	<div class="docs-container container">
+		<DocsSidebar currentSlug={currentSlug} />
+		<article class="docs-content">
+			<slot />
+		</article>
+	</div>
+</BaseLayout>
+
+<style>
+	.docs-container {
+		display: grid;
+		grid-template-columns: 240px 1fr;
+		gap: 3rem;
+		padding-top: 2.5rem;
+		padding-bottom: 4rem;
+		min-height: calc(100vh - var(--nav-height));
+	}
+
+	.docs-content {
+		max-width: 780px;
+	}
+
+	.docs-content :global(h1) {
+		margin-bottom: 1.5rem;
+	}
+
+	.docs-content :global(h2) {
+		margin-top: 2.5rem;
+		margin-bottom: 1rem;
+		font-size: 1.5rem;
+	}
+
+	.docs-content :global(h3) {
+		margin-top: 2rem;
+		margin-bottom: 0.75rem;
+		font-size: 1.2rem;
+	}
+
+	.docs-content :global(p) {
+		margin-bottom: 1rem;
+		color: var(--color-text-secondary);
+		line-height: 1.8;
+	}
+
+	.docs-content :global(ul),
+	.docs-content :global(ol) {
+		margin-bottom: 1rem;
+		padding-left: 1.5rem;
+		color: var(--color-text-secondary);
+		line-height: 1.8;
+	}
+
+	.docs-content :global(li) {
+		margin-bottom: 0.25rem;
+	}
+
+	.docs-content :global(pre) {
+		background: var(--color-bg-dark);
+		color: var(--color-text-inverse);
+		padding: 1.25rem;
+		border-radius: var(--radius-md);
+		overflow-x: auto;
+		margin-bottom: 1.5rem;
+		font-size: 0.875rem;
+		line-height: 1.7;
+	}
+
+	.docs-content :global(code) {
+		font-family: "IBM Plex Mono", monospace;
+	}
+
+	.docs-content :global(:not(pre) > code) {
+		background: var(--color-bg-light);
+		padding: 0.15rem 0.4rem;
+		border-radius: var(--radius-sm);
+		font-size: 0.875rem;
+		color: var(--color-primary-dark);
+	}
+
+	.docs-content :global(table) {
+		width: 100%;
+		border-collapse: collapse;
+		margin-bottom: 1.5rem;
+		font-size: 0.9rem;
+	}
+
+	.docs-content :global(th) {
+		text-align: left;
+		padding: 0.75rem;
+		border-bottom: 2px solid var(--color-border);
+		font-weight: 600;
+	}
+
+	.docs-content :global(td) {
+		padding: 0.75rem;
+		border-bottom: 1px solid var(--color-border);
+		color: var(--color-text-secondary);
+	}
+
+	.docs-content :global(blockquote) {
+		border-left: 3px solid var(--color-primary);
+		padding: 0.75rem 1rem;
+		margin-bottom: 1rem;
+		background: var(--color-bg-light);
+		border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+	}
+
+	.docs-content :global(blockquote p) {
+		margin-bottom: 0;
+	}
+
+	.docs-content :global(a) {
+		color: var(--color-primary);
+	}
+
+	@media (max-width: 768px) {
+		.docs-container {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+	}
+</style>

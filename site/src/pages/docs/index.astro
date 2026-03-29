@@ -1,0 +1,74 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import { getCollection } from "astro:content";
+
+const docs = await getCollection("docs");
+const sorted = docs.sort((a, b) => a.data.order - b.data.order);
+---
+
+<DocsLayout title="문서" description="커피챗 참여 방법, 매칭 스케줄, 에티켓 등을 안내합니다.">
+	<h1>문서</h1>
+	<p class="intro">
+		커피챗에 참여하고 즐기는 데 필요한 모든 정보를 안내합니다.
+	</p>
+
+	<div class="doc-cards">
+		{
+			sorted.map((doc) => (
+				<a href={`/docs/${doc.id}`} class="doc-card">
+					<h3>{doc.data.title}</h3>
+					<p>{doc.data.description}</p>
+				</a>
+			))
+		}
+	</div>
+</DocsLayout>
+
+<style>
+	.intro {
+		font-size: 1.15rem;
+		color: var(--color-text-secondary);
+		margin-bottom: 2.5rem;
+		line-height: 1.7;
+	}
+
+	.doc-cards {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+	}
+
+	.doc-card {
+		display: block;
+		padding: 1.5rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		transition: border-color 0.2s, box-shadow 0.2s;
+		color: inherit;
+	}
+
+	.doc-card:hover {
+		border-color: var(--color-primary);
+		box-shadow: 0 2px 8px rgba(0, 115, 206, 0.1);
+		text-decoration: none;
+	}
+
+	.doc-card h3 {
+		font-size: 1.05rem;
+		margin-bottom: 0.5rem;
+		color: var(--color-text);
+	}
+
+	.doc-card p {
+		font-size: 0.875rem;
+		color: var(--color-text-secondary);
+		line-height: 1.6;
+		margin: 0;
+	}
+
+	@media (max-width: 600px) {
+		.doc-cards {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

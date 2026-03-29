@@ -1,0 +1,38 @@
+---
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/global.css";
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const {
+	title,
+	description = "디스코드 서버에서 커피챗 참여자를 자동으로 매칭해주는 오픈소스 봇",
+} = Astro.props;
+
+const siteTitle = title === "홈" ? "Coffee Chat" : `${title} | Coffee Chat`;
+---
+
+<!doctype html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content={description} />
+		<meta property="og:title" content={siteTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<title>{siteTitle}</title>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	</head>
+	<body>
+		<Nav />
+		<main>
+			<slot />
+		</main>
+		<Footer />
+	</body>
+</html>

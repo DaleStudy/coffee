@@ -1,0 +1,92 @@
+---
+const stats = [
+	{
+		value: "100+",
+		label: "매칭 횟수",
+		desc: "자동 생성된 커피챗 매칭",
+	},
+	{
+		value: "50+",
+		label: "참여 멤버",
+		desc: "활발히 참여 중인 멤버",
+	},
+	{
+		value: "4",
+		label: "커피챗 그룹",
+		desc: "독립적으로 운영 중",
+	},
+	{
+		value: "100%",
+		label: "오픈소스",
+		desc: "MIT 라이선스, 완전 무료",
+	},
+];
+---
+
+<section class="stats">
+	<div class="container">
+		<div class="stats-grid">
+			{
+				stats.map((stat) => (
+					<div class="stat-item">
+						<span class="stat-value">{stat.value}</span>
+						<span class="stat-label">{stat.label}</span>
+						<span class="stat-desc">{stat.desc}</span>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.stats {
+		background: var(--color-bg-light);
+		padding: 5rem 0;
+	}
+
+	.stats-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 2.5rem;
+		text-align: center;
+	}
+
+	.stat-item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.stat-value {
+		font-size: 3.25rem;
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		line-height: 1;
+		color: var(--color-primary);
+	}
+
+	.stat-label {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-text);
+		margin-top: 0.5rem;
+	}
+
+	.stat-desc {
+		font-size: 0.85rem;
+		color: var(--color-text-secondary);
+		margin-top: 0.15rem;
+	}
+
+	@media (max-width: 768px) {
+		.stats-grid {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 2rem;
+		}
+
+		.stat-value {
+			font-size: 2.5rem;
+		}
+	}
+</style>

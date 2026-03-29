@@ -26,3 +26,9 @@ jobs:
 
       - name: Run tests
         run: bun test
+
+      - name: Install site dependencies
+        run: cd site && bun install
+
+      - name: Build site
+        run: bun run site:build
