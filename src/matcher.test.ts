@@ -1,14 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import {
-	buildGroupCandidates,
 	calculateExperienceStats,
 	calculatePairScore,
+	calculateRecencyPenalty,
 	createMatches,
+	findBestPartition,
+	generatePartition,
 	getExperienceLevel,
 	getExperienceMixScore,
-	getMeetingCount,
-	scoresToProbabilities,
-	weightedRandomSelect,
+	getRecentPairs,
+	scorePartition,
 } from "./matcher.ts";
 import type { MatchHistory, Participant } from "./types.ts";
 
@@ -69,7 +70,7 @@ describe("createMatches", () => {
 		expect(matchedIds.sort()).toEqual(participants.map((p) => p.id).sort());
 	});
 
-	test("최근 매칭 이력이 있으면 같은 조를 피한다", () => {
+	test("직전 라운드 페어가 같은 조에 배치되지 않는다", () => {
 		const participants = createParticipants(4);
 		const history: MatchHistory = {
 			matches: [
@@ -83,9 +84,10 @@ describe("createMatches", () => {
 			],
 		};
 
-		// 여러 번 실행해서 이력과 다른 매칭이 나오는지 확인
-		let foundDifferentPairing = false;
-		for (let i = 0; i < 50; i++) {
+		// 4명 2인조: 가능한 조합은 (1-2,3-4), (1-3,2-4), (1-4,2-3)
+		// 직전 라운드의 페어 user1-user2와 user3-user4는 하드 제외
+		// 따라서 (1-3,2-4) 또는 (1-4,2-3)만 가능
+		for (let i = 0; i < 20; i++) {
 			const pairs = createMatches(participants, history);
 			const pairKeys = pairs.map((pair) =>
 				pair
@@ -94,16 +96,9 @@ describe("createMatches", () => {
 					.join(","),
 			);
 
-			if (
-				!pairKeys.includes("user1,user2") &&
-				!pairKeys.includes("user3,user4")
-			) {
-				foundDifferentPairing = true;
-				break;
-			}
+			expect(pairKeys).not.toContain("user1,user2");
+			expect(pairKeys).not.toContain("user3,user4");
 		}
-
-		expect(foundDifferentPairing).toBe(true);
 	});
 
 	test("2명일 때 1개 조가 생성된다", () => {
@@ -202,49 +197,45 @@ describe("createMatches with groupSize", () => {
 	});
 });
 
-describe("getMeetingCount", () => {
+describe("calculateRecencyPenalty", () => {
 	test("만난 적 없으면 0을 반환한다", () => {
 		const history: MatchHistory = { matches: [] };
-		expect(getMeetingCount("user1", "user2", history)).toBe(0);
+		expect(calculateRecencyPenalty("user1", "user2", history)).toBe(0);
 	});
 
-	test("한 번 만났으면 1을 반환한다", () => {
+	test("직전 라운드에서 만났으면 1.0을 반환한다", () => {
 		const history: MatchHistory = {
-			matches: [
-				{
-					date: "2025-01-01",
-					pairs: [["user1", "user2"]],
-				},
-			],
+			matches: [{ date: "2025-01-01", pairs: [["user1", "user2"]] }],
 		};
-		expect(getMeetingCount("user1", "user2", history)).toBe(1);
+		expect(calculateRecencyPenalty("user1", "user2", history)).toBe(1);
 	});
 
-	test("여러 번 만났으면 정확한 횟수를 반환한다", () => {
+	test("여러 라운드에서 만났으면 1/roundsAgo 합산을 반환한다", () => {
 		const history: MatchHistory = {
 			matches: [
-				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
-				{ date: "2025-01-08", pairs: [["user1", "user3"]] },
-				{ date: "2025-01-15", pairs: [["user1", "user2"]] },
-				{ date: "2025-01-22", pairs: [["user1", "user2"]] },
+				{ date: "2025-01-01", pairs: [["user1", "user2"]] }, // roundsAgo=3
+				{ date: "2025-01-08", pairs: [["user1", "user3"]] }, // roundsAgo=2
+				{ date: "2025-01-15", pairs: [["user1", "user2"]] }, // roundsAgo=1
 			],
 		};
-		expect(getMeetingCount("user1", "user2", history)).toBe(3);
-		expect(getMeetingCount("user1", "user3", history)).toBe(1);
+		// penalty = 1/1 + 1/3 = 1.333...
+		expect(calculateRecencyPenalty("user1", "user2", history)).toBeCloseTo(
+			1 + 1 / 3,
+			5,
+		);
+		// penalty = 1/2
+		expect(calculateRecencyPenalty("user1", "user3", history)).toBeCloseTo(
+			1 / 2,
+			5,
+		);
 	});
 
-	test("3인조에서도 만남을 카운트한다", () => {
+	test("3인조에서 만남도 카운트한다", () => {
 		const history: MatchHistory = {
-			matches: [
-				{
-					date: "2025-01-01",
-					pairs: [["user1", "user2", "user3"]],
-				},
-			],
+			matches: [{ date: "2025-01-01", pairs: [["user1", "user2", "user3"]] }],
 		};
-		expect(getMeetingCount("user1", "user2", history)).toBe(1);
-		expect(getMeetingCount("user1", "user3", history)).toBe(1);
-		expect(getMeetingCount("user2", "user3", history)).toBe(1);
+		expect(calculateRecencyPenalty("user1", "user2", history)).toBe(1);
+		expect(calculateRecencyPenalty("user2", "user3", history)).toBe(1);
 	});
 });
 
@@ -338,7 +329,7 @@ describe("getExperienceMixScore", () => {
 });
 
 describe("calculatePairScore", () => {
-	test("만남 횟수가 적고 경험 믹싱이 좋으면 높은 점수", () => {
+	test("만남 이력이 없고 경험 믹싱이 좋으면 높은 점수", () => {
 		const history: MatchHistory = { matches: [] };
 		const stats = {
 			matchCounts: new Map([
@@ -349,13 +340,13 @@ describe("calculatePairScore", () => {
 		};
 
 		const score = calculatePairScore("user1", "user2", history, stats);
-		// meetingScore = 1/(1+0) = 1.0
+		// recencyPenalty = 0, meetingScore = 1/(1+0) = 1.0
 		// mixScore = 1.0 (newcomer-veteran)
 		// total = 1.0 * 0.6 + 1.0 * 0.4 = 1.0
 		expect(score).toBe(1.0);
 	});
 
-	test("만남 횟수가 많으면 점수가 낮아진다", () => {
+	test("최근 만남이 많으면 점수가 낮아진다", () => {
 		const history: MatchHistory = {
 			matches: [
 				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
@@ -371,77 +362,244 @@ describe("calculatePairScore", () => {
 		};
 
 		const score = calculatePairScore("user1", "user2", history, stats);
-		// meetingScore = 1/(1+2) = 0.333...
+		// recencyPenalty = 1/1 + 1/2 = 1.5
+		// meetingScore = 1/(1+1.5) = 0.4
 		// mixScore = 0.6 (regular-regular)
-		// total = 0.333 * 0.6 + 0.6 * 0.4 = 0.2 + 0.24 = 0.44
-		expect(score).toBeCloseTo(0.44, 2);
+		// total = 0.4 * 0.6 + 0.6 * 0.4 = 0.24 + 0.24 = 0.48
+		expect(score).toBeCloseTo(0.48, 2);
+	});
+
+	test("오래된 만남은 페널티가 작다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
+				{ date: "2025-01-08", pairs: [["user1", "user3"]] },
+				{ date: "2025-01-15", pairs: [["user1", "user3"]] },
+				{ date: "2025-01-22", pairs: [["user1", "user3"]] },
+				{ date: "2025-01-29", pairs: [["user1", "user3"]] },
+			],
+		};
+		const stats = {
+			matchCounts: new Map([
+				["user1", 5],
+				["user2", 5],
+			]),
+			maxCount: 10,
+		};
+
+		const score = calculatePairScore("user1", "user2", history, stats);
+		// recencyPenalty = 1/5 = 0.2 (met in oldest round only)
+		// meetingScore = 1/(1+0.2) = 0.833...
+		// mixScore = 0.6 (regular-regular)
+		// total = 0.833 * 0.6 + 0.6 * 0.4 = 0.5 + 0.24 = 0.74
+		expect(score).toBeCloseTo(0.74, 2);
 	});
 });
 
-describe("buildGroupCandidates", () => {
-	test("groupSize=2일 때 모든 페어를 생성한다", () => {
-		const participants = createParticipants(3);
+describe("getRecentPairs", () => {
+	test("빈 히스토리면 빈 Set을 반환한다", () => {
 		const history: MatchHistory = { matches: [] };
-		const stats = calculateExperienceStats(participants, history);
-
-		const candidates = buildGroupCandidates(participants, history, stats, 2);
-
-		// C(3,2) = 3
-		expect(candidates).toHaveLength(3);
-		expect(candidates.every((c) => c.ids.length === 2)).toBe(true);
+		expect(getRecentPairs(history).size).toBe(0);
 	});
 
-	test("groupSize=3일 때 모든 3인 조합을 생성한다", () => {
+	test("직전 라운드의 모든 페어를 반환한다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{
+					date: "2025-01-01",
+					pairs: [
+						["user1", "user2"],
+						["user3", "user4"],
+					],
+				},
+			],
+		};
+		const pairs = getRecentPairs(history);
+		expect(pairs.has("user1,user2")).toBe(true);
+		expect(pairs.has("user3,user4")).toBe(true);
+		expect(pairs.size).toBe(2);
+	});
+
+	test("3인조에서는 모든 페어 조합을 반환한다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{
+					date: "2025-01-01",
+					pairs: [["user1", "user2", "user3"]],
+				},
+			],
+		};
+		const pairs = getRecentPairs(history);
+		expect(pairs.has("user1,user2")).toBe(true);
+		expect(pairs.has("user1,user3")).toBe(true);
+		expect(pairs.has("user2,user3")).toBe(true);
+		expect(pairs.size).toBe(3);
+	});
+
+	test("lookback=1이면 직전 라운드만 본다", () => {
+		const history: MatchHistory = {
+			matches: [
+				{ date: "2025-01-01", pairs: [["user1", "user2"]] },
+				{ date: "2025-01-08", pairs: [["user3", "user4"]] },
+			],
+		};
+		const pairs = getRecentPairs(history, 1);
+		expect(pairs.has("user3,user4")).toBe(true);
+		expect(pairs.has("user1,user2")).toBe(false);
+	});
+});
+
+describe("generatePartition", () => {
+	test("참여자를 groupSize씩 나눈다", () => {
+		const participants = createParticipants(6);
+		const groups = generatePartition(participants, 2);
+
+		expect(groups).toHaveLength(3);
+		expect(groups.every((g) => g.length === 2)).toBe(true);
+	});
+
+	test("모든 참여자가 포함된다", () => {
+		const participants = createParticipants(6);
+		const groups = generatePartition(participants, 2);
+		const allIds = groups
+			.flat()
+			.map((p) => p.id)
+			.sort();
+
+		expect(allIds).toEqual(participants.map((p) => p.id).sort());
+	});
+
+	test("나머지 인원은 기존 그룹에 분배된다", () => {
+		const participants = createParticipants(7);
+		const groups = generatePartition(participants, 3);
+
+		expect(groups).toHaveLength(2);
+		const lengths = groups.map((g) => g.length).sort();
+		expect(lengths).toEqual([3, 4]);
+	});
+});
+
+describe("scorePartition", () => {
+	test("그룹 내 모든 페어의 pairScore 합을 반환한다", () => {
 		const participants = createParticipants(4);
 		const history: MatchHistory = { matches: [] };
 		const stats = calculateExperienceStats(participants, history);
+		const recentPairs = new Set<string>();
+		const pairScores = new Map<string, number>();
+		// 빈 히스토리에서 모든 meetingScore=1.0, 모든 mixScore=0.3 (newcomer-newcomer)
+		// pairScore = 1.0 * 0.6 + 0.3 * 0.4 = 0.72 per pair
+		for (let i = 0; i < participants.length; i++) {
+			for (let j = i + 1; j < participants.length; j++) {
+				const key = [participants[i].id, participants[j].id].sort().join(",");
+				pairScores.set(
+					key,
+					calculatePairScore(
+						participants[i].id,
+						participants[j].id,
+						history,
+						stats,
+					),
+				);
+			}
+		}
+		const groups = [
+			[participants[0], participants[1]],
+			[participants[2], participants[3]],
+		];
 
-		const candidates = buildGroupCandidates(participants, history, stats, 3);
+		const score = scorePartition(groups, recentPairs, pairScores);
 
-		// C(4,3) = 4
-		expect(candidates).toHaveLength(4);
-		expect(candidates.every((c) => c.ids.length === 3)).toBe(true);
+		// 2 groups × 1 pair each = 2 pairs total
+		expect(score.total).toBeCloseTo(0.72 * 2, 5);
+		expect(score.hasViolation).toBe(false);
+	});
+
+	test("하드 제외 위반 페어가 있으면 hasViolation이 true", () => {
+		const participants = createParticipants(4);
+		const history: MatchHistory = { matches: [] };
+		const stats = calculateExperienceStats(participants, history);
+		const recentPairs = new Set(["user1,user2"]);
+		const pairScores = new Map<string, number>();
+		for (let i = 0; i < participants.length; i++) {
+			for (let j = i + 1; j < participants.length; j++) {
+				const key = [participants[i].id, participants[j].id].sort().join(",");
+				pairScores.set(
+					key,
+					calculatePairScore(
+						participants[i].id,
+						participants[j].id,
+						history,
+						stats,
+					),
+				);
+			}
+		}
+		const groups = [
+			[participants[0], participants[1]],
+			[participants[2], participants[3]],
+		];
+
+		const score = scorePartition(groups, recentPairs, pairScores);
+
+		expect(score.hasViolation).toBe(true);
 	});
 });
 
-describe("scoresToProbabilities", () => {
-	test("빈 배열은 빈 배열 반환", () => {
-		expect(scoresToProbabilities([])).toEqual([]);
+describe("findBestPartition", () => {
+	test("유효한 파티션을 반환한다", () => {
+		const participants = createParticipants(6);
+		const history: MatchHistory = { matches: [] };
+
+		const groups = findBestPartition(participants, history, { groupSize: 2 });
+
+		expect(groups).toHaveLength(3);
+		expect(groups.every((g) => g.length === 2)).toBe(true);
+		const allIds = groups
+			.flat()
+			.map((p) => p.id)
+			.sort();
+		expect(allIds).toEqual(participants.map((p) => p.id).sort());
 	});
 
-	test("높은 점수가 높은 확률을 갖는다", () => {
-		const candidates = [
-			{ ids: ["a", "b"], score: 1.0 },
-			{ ids: ["c", "d"], score: 0.5 },
-		];
+	test("하드 제외 위반 파티션을 피한다", () => {
+		const participants = createParticipants(4);
+		const history: MatchHistory = {
+			matches: [
+				{
+					date: "2025-01-01",
+					pairs: [
+						["user1", "user2"],
+						["user3", "user4"],
+					],
+				},
+			],
+		};
 
-		const probs = scoresToProbabilities(candidates, 0.5);
-
-		expect(probs[0].probability).toBeGreaterThan(probs[1].probability);
+		// 여러 번 실행해서 직전 매칭 페어가 나오지 않는지 확인
+		for (let i = 0; i < 20; i++) {
+			const groups = findBestPartition(participants, history, { groupSize: 2 });
+			const pairKeys = groups.map((g) =>
+				g
+					.map((p) => p.id)
+					.sort()
+					.join(","),
+			);
+			// 직전 라운드의 개별 페어가 나오면 안 됨
+			expect(pairKeys).not.toContain("user1,user2");
+			expect(pairKeys).not.toContain("user3,user4");
+		}
 	});
 
-	test("확률의 합은 1이다", () => {
-		const candidates = [
-			{ ids: ["a", "b"], score: 0.8 },
-			{ ids: ["c", "d"], score: 0.6 },
-			{ ids: ["e", "f"], score: 0.4 },
-		];
+	test("대안이 없으면 fallback으로 최선 파티션 반환", () => {
+		// 2명만 있으면 유일한 파티션이 직전 매칭과 동일
+		const participants = createParticipants(2);
+		const history: MatchHistory = {
+			matches: [{ date: "2025-01-01", pairs: [["user1", "user2"]] }],
+		};
 
-		const probs = scoresToProbabilities(candidates, 0.5);
-		const sum = probs.reduce((acc, p) => acc + p.probability, 0);
-
-		expect(sum).toBeCloseTo(1.0, 5);
-	});
-});
-
-describe("weightedRandomSelect", () => {
-	test("빈 배열은 null 반환", () => {
-		expect(weightedRandomSelect([])).toBeNull();
-	});
-
-	test("하나만 있으면 그것을 반환", () => {
-		const candidates = [{ id: "a", probability: 1.0 }];
-		expect(weightedRandomSelect(candidates)).toEqual(candidates[0]);
+		const groups = findBestPartition(participants, history, { groupSize: 2 });
+		expect(groups).toHaveLength(1);
+		expect(groups[0]).toHaveLength(2);
 	});
 });
 
@@ -557,5 +715,100 @@ describe("통계적 검증", () => {
 
 		// 신규-경험자 믹싱이 어느 정도 발생해야 함
 		expect(mixedPairCount).toBeGreaterThan(iterations * 0.3);
+	});
+
+	test("최근에 만난 페어보다 오래전에 만난 페어가 선호된다", () => {
+		const participants = createParticipants(4);
+		const history: MatchHistory = {
+			matches: [
+				{
+					date: "2025-01-01",
+					pairs: [
+						["user1", "user3"],
+						["user2", "user4"],
+					],
+				},
+				{
+					date: "2025-01-08",
+					pairs: [
+						["user1", "user4"],
+						["user2", "user3"],
+					],
+				},
+				{
+					date: "2025-01-15",
+					pairs: [
+						["user1", "user3"],
+						["user2", "user4"],
+					],
+				},
+				{
+					date: "2025-01-22",
+					pairs: [
+						["user1", "user4"],
+						["user2", "user3"],
+					],
+				},
+				// 직전: user1-user2, user3-user4 (하드 제외 대상)
+				{
+					date: "2025-01-29",
+					pairs: [
+						["user1", "user2"],
+						["user3", "user4"],
+					],
+				},
+			],
+		};
+
+		// 하드 제외로 user1-user2, user3-user4 불가
+		// 남은 선택지: (user1-user3, user2-user4) vs (user1-user4, user2-user3)
+		// user1-user3: index 0(roundsAgo=5) & index 2(roundsAgo=3), penalty = 1/5+1/3 = 0.533
+		// user1-user4: index 1(roundsAgo=4) & index 3(roundsAgo=2), penalty = 1/4+1/2 = 0.75
+		// user1-user3의 penalty가 더 낮으므로 (user1-user3, user2-user4) 선호
+		let user1user3Count = 0;
+		const iterations = 100;
+
+		for (let i = 0; i < iterations; i++) {
+			const pairs = createMatches(participants, history);
+			const pairKeys = pairs.map((pair) =>
+				pair
+					.map((p) => p.id)
+					.sort()
+					.join(","),
+			);
+			if (pairKeys.includes("user1,user3")) {
+				user1user3Count++;
+			}
+		}
+
+		// best-of-N은 결정적으로 최고점을 선택하므로 대부분 user1-user3을 선택해야 함
+		expect(user1user3Count).toBeGreaterThan(iterations * 0.5);
+	});
+});
+
+describe("성능", () => {
+	test("30명 매칭이 500ms 이내에 완료된다", () => {
+		const participants = createParticipants(30);
+		const history: MatchHistory = {
+			matches: Array.from({ length: 20 }, (_, i) => ({
+				date: `2025-01-${String(i + 1).padStart(2, "0")}`,
+				pairs: [
+					[`user${(i % 30) + 1}`, `user${((i + 1) % 30) + 1}`],
+					[`user${((i + 2) % 30) + 1}`, `user${((i + 3) % 30) + 1}`],
+				],
+			})),
+		};
+
+		const start = performance.now();
+		const groups = createMatches(participants, history);
+		const elapsed = performance.now() - start;
+
+		expect(elapsed).toBeLessThan(500);
+		expect(groups.length).toBeGreaterThan(0);
+		const allIds = groups
+			.flat()
+			.map((p) => p.id)
+			.sort();
+		expect(allIds).toEqual(participants.map((p) => p.id).sort());
 	});
 });

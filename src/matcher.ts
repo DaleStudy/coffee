@@ -40,46 +40,60 @@ export function shuffle<T>(array: T[]): T[] {
 	return result;
 }
 
-function getRecentGroups(
+function pairKey(idA: string, idB: string): string {
+	return idA < idB ? `${idA},${idB}` : `${idB},${idA}`;
+}
+
+/**
+ * 최근 lookback 라운드의 모든 페어를 Set으로 반환
+ * 페어 키는 "id1,id2" 형식 (정렬됨)
+ */
+export function getRecentPairs(
 	history: MatchHistory,
-	lookback: number = 4,
+	lookback: number = 1,
 ): Set<string> {
 	const recentMatches = history.matches.slice(-lookback);
-	const groups = new Set<string>();
+	const pairs = new Set<string>();
 
 	for (const match of recentMatches) {
 		for (const group of match.pairs) {
-			const sorted = [...group].sort();
-			groups.add(sorted.join(","));
+			for (let i = 0; i < group.length; i++) {
+				for (let j = i + 1; j < group.length; j++) {
+					pairs.add(pairKey(group[i], group[j]));
+				}
+			}
 		}
 	}
 
-	return groups;
-}
-
-function groupKey(ids: string[]): string {
-	return [...ids].sort().join(",");
+	return pairs;
 }
 
 // ===== 경험 & 점수 함수들 =====
 
 /**
- * 두 사람이 만난 횟수를 반환
+ * 두 사람의 recency 기반 만남 페널티 계산
+ * penalty = Σ(1 / roundsAgo) for each round where they met
+ * roundsAgo = totalRounds - matchIndex (1-indexed, most recent = 1)
  */
-export function getMeetingCount(
+export function calculateRecencyPenalty(
 	idA: string,
 	idB: string,
 	history: MatchHistory,
 ): number {
-	let count = 0;
-	for (const match of history.matches) {
+	const totalRounds = history.matches.length;
+	let penalty = 0;
+
+	for (let i = 0; i < totalRounds; i++) {
+		const match = history.matches[i];
 		for (const pair of match.pairs) {
 			if (pair.includes(idA) && pair.includes(idB)) {
-				count++;
+				const roundsAgo = totalRounds - i;
+				penalty += 1 / roundsAgo;
 			}
 		}
 	}
-	return count;
+
+	return penalty;
 }
 
 /**
@@ -167,143 +181,142 @@ export function calculatePairScore(
 	history: MatchHistory,
 	stats: ExperienceStats,
 ): number {
-	const meetingCount = getMeetingCount(idA, idB, history);
-	const meetingScore = 1 / (1 + meetingCount);
+	const recencyPenalty = calculateRecencyPenalty(idA, idB, history);
+	const meetingScore = 1 / (1 + recencyPenalty);
 	const mixScore = getExperienceMixScore(idA, idB, stats);
 
 	return meetingScore * 0.6 + mixScore * 0.4;
 }
 
-interface ScoredCandidate {
-	ids: string[];
-	score: number;
+/**
+ * 참여자를 셔플 후 groupSize씩 나누어 파티션 생성
+ * 나머지 인원은 앞 그룹부터 1명씩 분배
+ */
+export function generatePartition(
+	participants: Participant[],
+	groupSize: number,
+): Participant[][] {
+	const shuffled = shuffle(participants);
+	const numGroups = Math.floor(shuffled.length / groupSize);
+	const extra = shuffled.length % groupSize;
+
+	const groups: Participant[][] = [];
+	let idx = 0;
+
+	// groupSize씩 나누기
+	for (let g = 0; g < numGroups; g++) {
+		groups.push(shuffled.slice(idx, idx + groupSize));
+		idx += groupSize;
+	}
+
+	// 나머지 인원을 앞 그룹부터 1명씩 분배
+	for (let e = 0; e < extra; e++) {
+		groups[e % numGroups].push(shuffled[idx + e]);
+	}
+
+	return groups;
+}
+
+interface PartitionScore {
+	total: number;
+	hasViolation: boolean;
 }
 
 /**
- * 그룹 후보 생성: C(n, groupSize) 조합을 만들고
- * 그룹 내 모든 페어 점수의 평균을 그룹 점수로 사용
+ * 모든 페어의 점수를 미리 계산하여 Map으로 반환
  */
-export function buildGroupCandidates(
+function precomputePairScores(
 	participants: Participant[],
 	history: MatchHistory,
 	stats: ExperienceStats,
-	groupSize: number = 2,
-): ScoredCandidate[] {
-	const candidates: ScoredCandidate[] = [];
-	const ids = participants.map((p) => p.id);
-
-	function* combinations(arr: string[], k: number): Generator<string[]> {
-		if (k === 0) {
-			yield [];
-			return;
-		}
-		for (let i = 0; i <= arr.length - k; i++) {
-			for (const rest of combinations(arr.slice(i + 1), k - 1)) {
-				yield [arr[i], ...rest];
-			}
-		}
-	}
-
-	for (const combo of combinations(ids, groupSize)) {
-		// 그룹 내 모든 페어 점수의 평균
-		let totalScore = 0;
-		let pairCount = 0;
-		for (let i = 0; i < combo.length; i++) {
-			for (let j = i + 1; j < combo.length; j++) {
-				totalScore += calculatePairScore(combo[i], combo[j], history, stats);
-				pairCount++;
-			}
-		}
-		const avgScore = pairCount > 0 ? totalScore / pairCount : 0;
-		candidates.push({ ids: combo, score: avgScore });
-	}
-
-	return candidates;
-}
-
-/**
- * 소프트맥스 변환으로 점수를 확률로 변환
- */
-export function scoresToProbabilities(
-	candidates: ScoredCandidate[],
-	temperature: number = 0.5,
-): { ids: string[]; probability: number }[] {
-	if (candidates.length === 0) return [];
-
-	// temperature로 나눈 후 exp 적용
-	const expScores = candidates.map((c) => Math.exp(c.score / temperature));
-	const sumExp = expScores.reduce((a, b) => a + b, 0);
-
-	return candidates.map((c, i) => ({
-		ids: c.ids,
-		probability: expScores[i] / sumExp,
-	}));
-}
-
-/**
- * 확률에 따른 가중 무작위 선택
- */
-export function weightedRandomSelect<T extends { probability: number }>(
-	candidates: T[],
-): T | null {
-	if (candidates.length === 0) return null;
-
-	const random = Math.random();
-	let cumulative = 0;
-
-	for (const candidate of candidates) {
-		cumulative += candidate.probability;
-		if (random < cumulative) {
-			return candidate;
-		}
-	}
-
-	// 부동소수점 오차 대비
-	return candidates[candidates.length - 1];
-}
-
-/**
- * 나머지 인원을 기존 그룹 중 최적의 그룹에 배치
- */
-export function assignExtraMembers(
-	extraMembers: Participant[],
-	groups: Participant[][],
-	history: MatchHistory,
-	stats: ExperienceStats,
-): void {
-	for (const member of extraMembers) {
-		if (groups.length === 0) break;
-		if (groups.length === 1) {
-			groups[0].push(member);
-			continue;
-		}
-
-		const minSize = Math.min(...groups.map((g) => g.length));
-		let bestIndex = 0;
-		let bestScore = -1;
-
-		for (let i = 0; i < groups.length; i++) {
-			if (groups[i].length > minSize) continue;
-
-			const group = groups[i];
-			let totalScore = 0;
-			for (const existing of group) {
-				totalScore += calculatePairScore(
-					member.id,
-					existing.id,
+): Map<string, number> {
+	const scores = new Map<string, number>();
+	for (let i = 0; i < participants.length; i++) {
+		for (let j = i + 1; j < participants.length; j++) {
+			const key = pairKey(participants[i].id, participants[j].id);
+			scores.set(
+				key,
+				calculatePairScore(
+					participants[i].id,
+					participants[j].id,
 					history,
 					stats,
-				);
-			}
+				),
+			);
+		}
+	}
+	return scores;
+}
 
-			if (totalScore > bestScore) {
-				bestScore = totalScore;
-				bestIndex = i;
+/**
+ * 파티션의 총점 계산 + 하드 제외 위반 여부 확인
+ * total = Σ(그룹 내 모든 페어의 pairScore)
+ */
+export function scorePartition(
+	groups: Participant[][],
+	recentPairs: Set<string>,
+	pairScores: Map<string, number>,
+): PartitionScore {
+	let total = 0;
+	let hasViolation = false;
+
+	for (const group of groups) {
+		for (let i = 0; i < group.length; i++) {
+			for (let j = i + 1; j < group.length; j++) {
+				const key = pairKey(group[i].id, group[j].id);
+				total += pairScores.get(key) ?? 0;
+				if (recentPairs.has(key)) {
+					hasViolation = true;
+				}
 			}
 		}
-
-		groups[bestIndex].push(member);
 	}
+
+	return { total, hasViolation };
+}
+
+function getTrialCount(participantCount: number): number {
+	if (participantCount <= 16) return 5000;
+	if (participantCount <= 30) return 2000;
+	return 1000;
+}
+
+/**
+ * Best-of-N 파티션 탐색으로 최적 매칭을 찾는다
+ * N개 파티션을 생성하여 하드 제외를 만족하는 최고점 파티션을 반환
+ * 모든 파티션이 하드 제외를 위반하면 최고점 파티션을 fallback으로 반환
+ */
+export function findBestPartition(
+	participants: Participant[],
+	history: MatchHistory,
+	options: MatchingOptions = {},
+): Participant[][] {
+	const { groupSize = 2 } = options;
+	const stats = calculateExperienceStats(participants, history);
+	const recentPairs = getRecentPairs(history, 1);
+	const pairScores = precomputePairScores(participants, history, stats);
+	const trials = getTrialCount(participants.length);
+
+	let bestValid: { groups: Participant[][]; score: number } | null = null;
+	let bestAny: { groups: Participant[][]; score: number } | null = null;
+
+	for (let i = 0; i < trials; i++) {
+		const groups = generatePartition(participants, groupSize);
+		const result = scorePartition(groups, recentPairs, pairScores);
+
+		if (!bestAny || result.total > bestAny.score) {
+			bestAny = { groups, score: result.total };
+		}
+
+		if (
+			!result.hasViolation &&
+			(!bestValid || result.total > bestValid.score)
+		) {
+			bestValid = { groups, score: result.total };
+		}
+	}
+
+	return (bestValid ?? bestAny)!.groups;
 }
 
 export function createMatches(
@@ -311,82 +324,10 @@ export function createMatches(
 	history: MatchHistory,
 	options: MatchingOptions = {},
 ): Participant[][] {
-	const { temperature = 0.5, groupSize = 2 } = options;
+	const { groupSize = 2 } = options;
 
-	// 2명 미만이면 매칭 불가
 	if (participants.length < 2) return [];
-	// groupSize * 2 미만이면 한 그룹으로
 	if (participants.length < groupSize * 2) return [participants];
 
-	const recentGroups = getRecentGroups(history);
-	const stats = calculateExperienceStats(participants, history);
-	const groups: Participant[][] = [];
-
-	// 참여자 맵 생성
-	const participantMap = new Map<string, Participant>();
-	for (const p of participants) {
-		participantMap.set(p.id, p);
-	}
-
-	// 남은 참여자 ID 집합
-	const remaining = new Set(participants.map((p) => p.id));
-
-	// 나머지 인원(total % groupSize)을 먼저 분리
-	const extraCount = remaining.size % groupSize;
-	const extraMemberIds: string[] = [];
-	if (extraCount > 0) {
-		const shuffledIds = shuffle(Array.from(remaining));
-		for (let i = 0; i < extraCount; i++) {
-			extraMemberIds.push(shuffledIds[i]);
-			remaining.delete(shuffledIds[i]);
-		}
-	}
-
-	// 매칭 루프
-	while (remaining.size >= groupSize) {
-		const remainingParticipants = Array.from(remaining).map(
-			(id) => participantMap.get(id)!,
-		);
-
-		// 그룹 후보 생성
-		let candidates = buildGroupCandidates(
-			remainingParticipants,
-			history,
-			stats,
-			groupSize,
-		);
-
-		// 최근 중복 필터링
-		const filteredCandidates = candidates.filter(
-			(c) => !recentGroups.has(groupKey(c.ids)),
-		);
-
-		// 필터링 후 후보가 있으면 사용, 없으면 전체 후보 사용 (fallback)
-		if (filteredCandidates.length > 0) {
-			candidates = filteredCandidates;
-		}
-
-		// 확률 변환 및 선택
-		const probabilities = scoresToProbabilities(candidates, temperature);
-		const selected = weightedRandomSelect(probabilities);
-
-		if (!selected) break;
-
-		// 선택된 그룹 추가
-		const group = selected.ids.map((id) => participantMap.get(id)!);
-		groups.push(group);
-
-		// 선택된 참여자 제거
-		for (const id of selected.ids) {
-			remaining.delete(id);
-		}
-	}
-
-	// 나머지 인원을 최적 그룹에 배치
-	if (extraMemberIds.length > 0 && groups.length > 0) {
-		const extraMembers = extraMemberIds.map((id) => participantMap.get(id)!);
-		assignExtraMembers(extraMembers, groups, history, stats);
-	}
-
-	return groups;
+	return findBestPartition(participants, history, options);
 }
