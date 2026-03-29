@@ -1,0 +1,44 @@
+---
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/global.css";
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const {
+	title,
+	description = "디스코드 서버에서 커피챗 참여자를 자동으로 매칭해주는 오픈소스 봇",
+} = Astro.props;
+
+const siteTitle = title === "홈" ? "Coffee Chat" : `${title} | Coffee Chat`;
+---
+
+<!doctype html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content={description} />
+		<meta property="og:title" content={siteTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<title>{siteTitle}</title>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+		/>
+	</head>
+	<body>
+		<a href="#main-content" class="skip-to-content">본문으로 건너뛰기</a>
+		<Nav />
+		<main id="main-content">
+			<slot />
+		</main>
+		<Footer />
+	</body>
+</html>

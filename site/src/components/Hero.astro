@@ -1,0 +1,126 @@
+---
+import DiscordMockup from "./DiscordMockup.astro";
+---
+
+<section class="hero">
+	<div class="hero-bg" aria-hidden="true">
+		<div class="hero-gradient"></div>
+		<div class="hero-dots"></div>
+	</div>
+	<div class="container hero-inner">
+		<div class="hero-text">
+			<h1>커피챗, 자동으로<br />매칭해드립니다</h1>
+			<p class="hero-subtitle">
+				디스코드 서버에서 멤버들을 자동으로 매칭하여 의미 있는 대화를
+				연결합니다. 슬래시 명령어 하나로 시작하세요.
+			</p>
+			<div class="hero-cta">
+				<a href="/docs/how-to-join" class="btn btn-primary btn-lg">
+					시작하기
+					<span aria-hidden="true">&rarr;</span>
+				</a>
+				<a
+					href="https://github.com/DaleStudy/coffee"
+					class="btn btn-secondary btn-lg"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					GitHub에서 보기
+				</a>
+			</div>
+		</div>
+		<div class="hero-visual">
+			<DiscordMockup variant="match-result" />
+		</div>
+	</div>
+</section>
+
+<style>
+	.hero {
+		position: relative;
+		padding: 6rem 0 7rem;
+		overflow: hidden;
+	}
+
+	.hero-bg {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+	}
+
+	.hero-gradient {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			160deg,
+			var(--color-bg-warm) 0%,
+			var(--color-primary-light) 40%,
+			var(--color-bg) 100%
+		);
+	}
+
+	.hero-dots {
+		position: absolute;
+		inset: 0;
+		opacity: 0.15;
+		background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+		background-size: 24px 24px;
+	}
+
+	.hero-inner {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 4rem;
+		align-items: center;
+	}
+
+	.hero-text h1 {
+		margin-bottom: 1.5rem;
+	}
+
+	.hero-subtitle {
+		font-size: 1.2rem;
+		color: var(--color-text-secondary);
+		line-height: 1.8;
+		margin-bottom: 2.5rem;
+		max-width: 500px;
+	}
+
+	.hero-cta {
+		display: flex;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.hero-visual {
+		display: flex;
+		justify-content: center;
+	}
+
+	@media (max-width: 900px) {
+		.hero {
+			padding: 3rem 0 4rem;
+		}
+
+		.hero-inner {
+			grid-template-columns: 1fr;
+			gap: 3rem;
+			text-align: center;
+		}
+
+		.hero-subtitle {
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		.hero-cta {
+			justify-content: center;
+		}
+
+		.hero-visual {
+			order: -1;
+		}
+	}
+</style>

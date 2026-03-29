@@ -1,0 +1,94 @@
+---
+const problems = [
+	"커뮤니티 멤버들이 서로 교류할 기회가 없다",
+	"매번 수동으로 매칭하기 번거롭다",
+	"같은 사람끼리만 반복 매칭된다",
+	"참여자 관리가 어렵다",
+	"새로운 멤버가 기존 멤버와 어울리기 힘들다",
+	"온라인 커뮤니티의 소속감이 약해지고 있다",
+];
+---
+
+<section class="problems section">
+	<div class="container">
+		<h2>이런 고민,<br />해보셨나요?</h2>
+		<p class="problems-subtitle">
+			커뮤니티를 운영하다 보면 자주 마주치는 문제들입니다.
+		</p>
+		<div class="problems-grid">
+			{
+				problems.map((text) => (
+					<div class="problem-item">
+						<span class="x-icon" aria-hidden="true">
+							<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+								<path
+									d="M12 4L4 12M4 4l8 8"
+									stroke="currentColor"
+									stroke-width="2.5"
+									stroke-linecap="round"
+								/>
+							</svg>
+						</span>
+						<span>{text}</span>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.problems {
+		background: var(--color-bg);
+	}
+
+	.problems h2 {
+		margin-bottom: 1rem;
+	}
+
+	.problems-subtitle {
+		color: var(--color-text-secondary);
+		margin-bottom: 3.5rem;
+		font-size: 1.15rem;
+	}
+
+	.problems-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1rem;
+		max-width: 800px;
+	}
+
+	.problem-item {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1.1rem 1.5rem;
+		background: var(--color-bg-light);
+		border-radius: var(--radius-md);
+		font-size: 1rem;
+		color: var(--color-text-secondary);
+	}
+
+	.x-icon {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: rgba(220, 38, 38, 0.06);
+		color: var(--color-danger);
+	}
+
+	@media (max-width: 768px) {
+		.problems-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.problems h2 br {
+			display: none;
+		}
+	}
+</style>

@@ -1,0 +1,308 @@
+---
+interface Props {
+	variant?: "match-result" | "join-command" | "channel";
+}
+
+const { variant = "match-result" } = Astro.props;
+---
+
+{
+	variant === "match-result" && (
+		<div class="discord-window">
+			<div class="discord-header">
+				<span class="discord-dot" />
+				<span class="discord-channel"># 커피챗-매칭</span>
+			</div>
+			<div class="discord-body">
+				<div class="discord-msg">
+					<div class="discord-avatar bot">
+						<span>☕</span>
+					</div>
+					<div class="discord-content">
+						<div class="discord-author">
+							<span class="bot-name">Coffee Chat</span>
+							<span class="bot-badge">BOT</span>
+						</div>
+						<div class="discord-embed">
+							<div class="embed-bar" />
+							<div class="embed-content">
+								<div class="embed-title">
+									☕ 이번 주 커피챗 매칭 결과
+								</div>
+								<div class="embed-field">
+									<span class="field-label">1조</span>
+									<span class="field-value">@김민수 &amp; @이서연</span>
+								</div>
+								<div class="embed-field">
+									<span class="field-label">2조</span>
+									<span class="field-value">@박지훈 &amp; @최유진</span>
+								</div>
+								<div class="embed-field">
+									<span class="field-label">3조</span>
+									<span class="field-value">
+										@정하늘 &amp; @강도윤 &amp; @윤서아
+									</span>
+								</div>
+								<div class="embed-footer">
+									다음 매칭: 2주 후 월요일 09:00
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+{
+	variant === "join-command" && (
+		<div class="discord-window">
+			<div class="discord-header">
+				<span class="discord-dot" />
+				<span class="discord-channel"># 일반</span>
+			</div>
+			<div class="discord-body">
+				<div class="discord-msg">
+					<div class="discord-avatar user">
+						<span>🙋</span>
+					</div>
+					<div class="discord-content">
+						<div class="discord-author">
+							<span class="user-name">김민수</span>
+						</div>
+						<div class="discord-text command">/coffee join</div>
+					</div>
+				</div>
+				<div class="discord-msg">
+					<div class="discord-avatar bot">
+						<span>☕</span>
+					</div>
+					<div class="discord-content">
+						<div class="discord-author">
+							<span class="bot-name">Coffee Chat</span>
+							<span class="bot-badge">BOT</span>
+						</div>
+						<div class="discord-text">
+							✅ 커피챗에 참여했어요! 다음 매칭을 기다려주세요.
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+{
+	variant === "channel" && (
+		<div class="discord-window">
+			<div class="discord-header">
+				<span class="discord-dot" />
+				<span class="discord-channel"># 커피챗-매칭</span>
+			</div>
+			<div class="discord-body">
+				<div class="discord-msg">
+					<div class="discord-avatar bot">
+						<span>☕</span>
+					</div>
+					<div class="discord-content">
+						<div class="discord-author">
+							<span class="bot-name">Coffee Chat</span>
+							<span class="bot-badge">BOT</span>
+						</div>
+						<div class="discord-text">
+							🎉 매칭이 완료되었습니다! 각 조별 쓰레드에서 대화를
+							시작해보세요.
+						</div>
+						<div class="discord-reactions">
+							<span class="reaction">☕ 6</span>
+							<span class="reaction">🎉 4</span>
+							<span class="reaction">👍 8</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+<style>
+	.discord-window {
+		background: #313338;
+		border-radius: var(--radius-lg);
+		overflow: hidden;
+		box-shadow: var(--shadow-xl);
+		font-family: "gg sans", "Noto Sans", sans-serif;
+		font-size: 0.9rem;
+		color: #dbdee1;
+		width: 100%;
+		max-width: 480px;
+		min-width: 0;
+	}
+
+	.discord-header {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 12px 16px;
+		background: #2b2d31;
+		border-bottom: 1px solid #1e1f22;
+	}
+
+	.discord-dot {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: #80848e;
+	}
+
+	.discord-channel {
+		font-weight: 600;
+		font-size: 0.85rem;
+		color: #f2f3f5;
+	}
+
+	.discord-body {
+		padding: 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.discord-msg {
+		display: flex;
+		gap: 12px;
+	}
+
+	.discord-avatar {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.1rem;
+		flex-shrink: 0;
+	}
+
+	.discord-avatar.bot {
+		background: #5865f2;
+	}
+
+	.discord-avatar.user {
+		background: #57f287;
+	}
+
+	.discord-content {
+		flex: 1;
+		min-width: 0;
+		overflow-wrap: break-word;
+	}
+
+	.discord-author {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-bottom: 4px;
+	}
+
+	.bot-name {
+		font-weight: 600;
+		color: #5865f2;
+		font-size: 0.85rem;
+	}
+
+	.user-name {
+		font-weight: 600;
+		color: #57f287;
+		font-size: 0.85rem;
+	}
+
+	.bot-badge {
+		background: #5865f2;
+		color: white;
+		font-size: 0.6rem;
+		padding: 1px 5px;
+		border-radius: 3px;
+		font-weight: 600;
+		text-transform: uppercase;
+	}
+
+	.discord-text {
+		line-height: 1.5;
+		font-size: 0.875rem;
+	}
+
+	.discord-text.command {
+		color: #00a8fc;
+		font-family: var(--font-mono);
+	}
+
+	.discord-embed {
+		display: flex;
+		gap: 12px;
+		margin-top: 6px;
+		background: #2b2d31;
+		border-radius: 4px;
+		padding: 12px;
+		max-width: 400px;
+	}
+
+	.embed-bar {
+		width: 4px;
+		border-radius: 4px;
+		background: #5865f2;
+		flex-shrink: 0;
+	}
+
+	.embed-content {
+		flex: 1;
+		min-width: 0;
+		overflow-wrap: break-word;
+	}
+
+	.embed-title {
+		font-weight: 700;
+		color: #f2f3f5;
+		margin-bottom: 10px;
+		font-size: 0.9rem;
+	}
+
+	.embed-field {
+		display: flex;
+		gap: 8px;
+		margin-bottom: 6px;
+		font-size: 0.825rem;
+	}
+
+	.field-label {
+		color: #b5bac1;
+		font-weight: 600;
+		min-width: 28px;
+	}
+
+	.field-value {
+		color: #00a8fc;
+	}
+
+	.embed-footer {
+		margin-top: 10px;
+		font-size: 0.75rem;
+		color: #80848e;
+	}
+
+	.discord-reactions {
+		display: flex;
+		gap: 6px;
+		margin-top: 8px;
+	}
+
+	.reaction {
+		background: rgba(88, 101, 242, 0.15);
+		border: 1px solid rgba(88, 101, 242, 0.3);
+		border-radius: 8px;
+		padding: 2px 8px;
+		font-size: 0.8rem;
+		color: #dbdee1;
+	}
+</style>
