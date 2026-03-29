@@ -4,10 +4,10 @@
 	"description": "커피챗 봇 웹사이트",
 	"type": "module",
 	"scripts": {
-		"dev": "astro dev",
-		"build": "astro build",
-		"preview": "astro preview",
-		"check": "astro check"
+		"dev": "bunx --bun astro dev",
+		"build": "bunx --bun astro build",
+		"preview": "bunx --bun astro preview",
+		"check": "bunx --bun astro check"
 	},
 	"dependencies": {
 		"astro": "^6.1.1"
