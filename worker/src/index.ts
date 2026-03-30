@@ -8,6 +8,7 @@ import { handleAutocomplete, handleCommand } from "./handlers.ts";
 import { verifyRequest } from "./verify.ts";
 
 interface Env {
+	ASSETS: Fetcher;
 	DISCORD_PUBLIC_KEY: string;
 	DISCORD_APPLICATION_ID: string;
 	DISCORD_BOT_TOKEN: string;
@@ -17,7 +18,7 @@ interface Env {
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
 		if (request.method !== "POST") {
-			return new Response("Method Not Allowed", { status: 405 });
+			return env.ASSETS.fetch(request);
 		}
 
 		const signature = request.headers.get("X-Signature-Ed25519");

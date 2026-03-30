@@ -2,6 +2,13 @@
 	"name": "coffee",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-02-03",
+	"assets": {
+		"directory": "../site/dist",
+		"binding": "ASSETS",
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "404-page",
+		"run_worker_first": true
+	},
 	"vars": {
 		"DISCORD_PUBLIC_KEY": "48f59590c72e1076554a99adeeb47eb678c87b92202b18cfea1b03ce5dbcbf02",
 		"DISCORD_APPLICATION_ID": "1464984307331502092",
