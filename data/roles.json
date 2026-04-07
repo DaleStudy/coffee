@@ -20,7 +20,7 @@
 		"displayName": "테스트 커피챗",
 		"roleId": "1482772179656376340",
 		"channelId": "1485256492520050760",
-		"schedule": "weekly",
+		"schedule": "manual",
 		"groupSize": 2
 	},
 	{

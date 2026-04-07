@@ -46,15 +46,22 @@ async function main() {
 	for (const role of targetRoles) {
 		console.log(`--- [${role.displayName}] 역할 처리 중 ---`);
 
+		// 1. 매칭 이력 로드
+		const history = await loadHistory(role.name);
+		const lastMatchDate = history.matches.at(-1)?.date;
+
 		// 스케줄 체크 (수동 실행 또는 dry-run 시 건너뜀)
-		if (!forceRun && !dryRun && !shouldRunToday(role.schedule)) {
-			console.log(
-				`${role.displayName}: 이번 주는 매칭 주가 아닙니다. 건너뜁니다.`,
-			);
-			continue;
+		if (!forceRun && !dryRun) {
+			const last = lastMatchDate ? new Date(lastMatchDate) : undefined;
+			if (!shouldRunToday(role.schedule, new Date(), last)) {
+				console.log(
+					`${role.displayName}: 아직 매칭 주기가 되지 않았습니다. 건너뜁니다.${lastMatchDate ? ` (마지막 매칭: ${lastMatchDate})` : ""}`,
+				);
+				continue;
+			}
 		}
 
-		// 1. 참여자 목록 조회
+		// 2. 참여자 목록 조회
 		const participants = await getParticipants(role.roleId);
 		console.log(
 			`${role.displayName}: 참여자 ${participants.length}명 조회 완료`,
@@ -66,9 +73,6 @@ async function main() {
 			);
 			continue;
 		}
-
-		// 2. 매칭 이력 로드
-		const history = await loadHistory(role.name);
 
 		// 3. 매칭 생성
 		const groups = createMatches(participants, history, {

@@ -1,44 +1,24 @@
 import type { MatchSchedule } from "./types.ts";
 
+const INTERVAL_DAYS: Record<Exclude<MatchSchedule, "manual">, number> = {
+	weekly: 7,
+	biweekly: 14,
+	monthly: 28,
+};
+
 /**
- * 주어진 스케줄에 따라 오늘 매칭을 실행해야 하는지 판단
+ * 마지막 매칭일 기준으로 오늘 매칭을 실행해야 하는지 판단
  */
 export function shouldRunToday(
 	schedule: MatchSchedule,
 	today: Date = new Date(),
+	lastMatchDate?: Date,
 ): boolean {
-	switch (schedule) {
-		case "weekly":
-			return true;
-		case "biweekly": {
-			// ISO 주 번호 기준 짝수 주
-			const weekNumber = getISOWeekNumber(today);
-			return weekNumber % 2 === 0;
-		}
-		case "monthly": {
-			// 해당 월의 첫째 월요일
-			return isFirstMondayOfMonth(today);
-		}
-	}
-}
+	if (schedule === "manual") return false;
+	if (!lastMatchDate) return true;
 
-/**
- * ISO 8601 주 번호 계산
- */
-export function getISOWeekNumber(date: Date): number {
-	const d = new Date(
-		Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+	const diffDays = Math.floor(
+		(today.getTime() - lastMatchDate.getTime()) / 86400000,
 	);
-	// 가장 가까운 목요일로 이동 (ISO 8601 기준)
-	d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-	const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-	return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-}
-
-/**
- * 해당 월의 첫째 월요일인지 확인
- */
-function isFirstMondayOfMonth(date: Date): boolean {
-	if (date.getDay() !== 1) return false; // 월요일이 아니면 false
-	return date.getDate() <= 7; // 7일 이내의 월요일이면 첫째 월요일
+	return diffDays >= INTERVAL_DAYS[schedule];
 }

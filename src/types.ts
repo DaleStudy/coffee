@@ -23,7 +23,7 @@ export interface MatchingOptions {
 	groupSize?: number; // 기본 2
 }
 
-export type MatchSchedule = "weekly" | "biweekly" | "monthly";
+export type MatchSchedule = "weekly" | "biweekly" | "monthly" | "manual";
 
 export interface RoleConfig {
 	name: string; // slug (디렉토리명, autocomplete value)
