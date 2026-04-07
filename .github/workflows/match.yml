@@ -14,6 +14,8 @@ on:
           - ""
           - coffee
           - coffee-ui
+          - coffee-ai
+          - coffee-test
 
 jobs:
   match:
