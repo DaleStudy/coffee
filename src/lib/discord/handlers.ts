@@ -5,8 +5,8 @@ import {
 	InteractionResponseType,
 	MessageFlags,
 } from "discord-api-types/v10";
-import rolesConfig from "../../data/roles.json";
-import type { RoleConfig } from "../../src/types.ts";
+import rolesConfig from "../../../data/roles.json";
+import type { RoleConfig } from "../../../data/types.ts";
 import { addRole, removeRole } from "./discord-api.ts";
 
 interface Env {

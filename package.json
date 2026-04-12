@@ -4,24 +4,29 @@
 	"description": "디스코드 커피챗 매칭 봇",
 	"type": "module",
 	"scripts": {
-		"match": "bun run src/index.ts",
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
+		"check": "astro check",
+		"match": "bun run match/index.ts",
 		"test": "bun test",
 		"lint": "biome check .",
 		"format": "biome format --write .",
-		"typecheck": "tsc --noEmit",
-		"worker:dev": "cd worker && bun run dev",
-		"worker:deploy": "cd worker && bun run deploy",
-		"worker:register": "cd worker && bun run register-commands",
-		"site:dev": "cd site && bun run dev",
-		"site:build": "cd site && bun run build",
-		"site:preview": "cd site && bun run preview"
+		"typecheck": "astro check && tsc --project match/tsconfig.json --noEmit",
+		"deploy": "bun run build && wrangler deploy",
+		"register-commands": "bun run scripts/register-commands.ts"
 	},
 	"dependencies": {
-		"discord.js": "^14.25.1"
+		"astro": "^6.1.1",
+		"@astrojs/cloudflare": "latest",
+		"discord.js": "^14.25.1",
+		"discord-api-types": "^0.37.119"
 	},
 	"devDependencies": {
+		"@astrojs/check": "^0.9.8",
 		"@biomejs/biome": "^2.3.12",
 		"@types/bun": "latest",
-		"typescript": "^5.9.3"
+		"typescript": "^5.9.3",
+		"wrangler": "^4.6.0"
 	}
 }

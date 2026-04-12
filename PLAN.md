@@ -19,7 +19,7 @@
 
 **구현 파일**:
 - `.github/workflows/match.yml`
-- `src/matcher.ts` - `createMatches()`
+- `match/matcher.ts` - `createMatches()`
 
 #### B-2: 매칭 발표
 **상태**: ✅ 완료 (2026-01-26)
@@ -30,7 +30,7 @@
 - 3인조 표시 자동 추가
 
 **구현 파일**:
-- `src/webhook.ts` - `announceMatches()`
+- `match/webhook.ts` - `announceMatches()`
 
 **메시지 포맷**:
 ```
@@ -52,7 +52,7 @@
 - Fisher-Yates 셔플 알고리즘 사용
 
 **구현 파일**:
-- `src/matcher.ts` - `getRecentPairs()`, `shuffle()`
+- `match/matcher.ts` - `getRecentPairs()`, `shuffle()`
 
 **데이터 구조**:
 ```json
@@ -77,7 +77,7 @@
 - 마지막 사람을 마지막 조에 추가
 
 **구현 파일**:
-- `src/matcher.ts` - `createMatches()` 마지막 로직
+- `match/matcher.ts` - `createMatches()` 마지막 로직
 
 ---
 
@@ -148,8 +148,8 @@
 - ephemeral 응답으로 본인에게만 확인 메시지 표시
 
 **구현 파일**:
-- `worker/src/handlers.ts` - `handleJoin()`
-- `worker/src/discord-api.ts` - `addRole()`
+- `src/lib/discord/handlers.ts` - `handleJoin()`
+- `src/lib/discord/discord-api.ts` - `addRole()`
 
 #### U-2: 커피챗 참여 탈퇴
 **상태**: ✅ 완료 (2026-02-08)
@@ -159,8 +159,8 @@
 - U-1과 동일한 Cloudflare Workers 인프라 사용
 
 **구현 파일**:
-- `worker/src/handlers.ts` - `handleLeave()`
-- `worker/src/discord-api.ts` - `removeRole()`
+- `src/lib/discord/handlers.ts` - `handleLeave()`
+- `src/lib/discord/discord-api.ts` - `removeRole()`
 
 ---
 

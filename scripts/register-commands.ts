@@ -1,4 +1,4 @@
-import { COFFEE_COMMAND } from "../src/commands.ts";
+import { COFFEE_COMMAND } from "../src/lib/discord/commands.ts";
 
 const wranglerText = await Bun.file(
 	new URL("../wrangler.jsonc", import.meta.url),
