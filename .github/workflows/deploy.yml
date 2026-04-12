@@ -3,7 +3,7 @@ name: Deploy Worker
 on:
   push:
     branches: [main]
-    paths: ["worker/**"]
+    paths: ["worker/**", "site/**"]
 
 jobs:
   deploy:
@@ -15,7 +15,15 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: Install dependencies
+      - name: Install site dependencies
+        run: bun install
+        working-directory: site
+
+      - name: Build site
+        run: bun run build
+        working-directory: site
+
+      - name: Install worker dependencies
         run: bun install
         working-directory: worker
 

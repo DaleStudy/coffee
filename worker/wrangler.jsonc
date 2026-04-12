@@ -1,5 +1,6 @@
 {
 	"name": "coffee",
+	"account_id": "94480614a6df7731f1e4491bdac5c440",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-02-03",
 	"assets": {
