@@ -4,12 +4,12 @@
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"lib": ["ESNext"],
-		"types": ["@cloudflare/workers-types"],
+		"types": ["bun-types"],
 		"strict": true,
 		"skipLibCheck": true,
 		"noEmit": true,
 		"resolveJsonModule": true,
 		"allowImportingTsExtensions": true
 	},
-	"include": ["src/**/*"]
+	"include": ["./**/*"]
 }

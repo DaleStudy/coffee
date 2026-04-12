@@ -37,14 +37,13 @@ bun install
 | `DRY_RUN`           | `true`로 설정 시 매칭 결과만 콘솔에 출력 (이력 저장/쓰레드 생성 스킵) | No   |
 | `MATCH_ROLE`        | 특정 역할만 매칭 (예: `coffee`)                                       | No   |
 
-### Worker (`worker/`)
+### Worker (Cloudflare)
 
 | 환경변수                 | 설명                               | 설정 위치         |
 | ------------------------ | ---------------------------------- | ----------------- |
 | `DISCORD_PUBLIC_KEY`     | Discord 요청 서명 검증용 공개키    | `wrangler.jsonc`  |
 | `DISCORD_APPLICATION_ID` | Discord 앱 ID (슬래시 명령어 등록) | `wrangler.jsonc`  |
 | `DISCORD_SERVER_ID`      | Discord 서버 ID                    | `wrangler.jsonc`  |
-| `DISCORD_ROLE_ID`        | 커피챗 Role ID                     | `wrangler.jsonc`  |
 | `DISCORD_BOT_TOKEN`      | Discord Bot 토큰                   | `wrangler secret` |
 
 > 매칭 결과를 발표할 채널 ID와 참여자 Role ID는 `data/roles.json`에서 관리합니다.
@@ -74,8 +73,8 @@ Discord Developer Portal에서 토큰을 재발급하면 아래 **3곳 모두** 
 | 위치                         | 업데이트 방법                                             |
 | ---------------------------- | --------------------------------------------------------- |
 | **GitHub Actions Secret**    | `gh secret set DISCORD_BOT_TOKEN`                         |
-| **Cloudflare Worker Secret** | `cd worker && bunx wrangler secret put DISCORD_BOT_TOKEN` |
-| **로컬 개발 환경**           | `worker/.dev.vars` 파일의 `DISCORD_BOT_TOKEN=` 값 수정    |
+| **Cloudflare Worker Secret** | `bunx wrangler secret put DISCORD_BOT_TOKEN`              |
+| **로컬 개발 환경**           | `.dev.vars` 파일의 `DISCORD_BOT_TOKEN=` 값 수정           |
 
 ### Bot 권한 설정
 
@@ -92,10 +91,8 @@ Discord Developer Portal에서 토큰을 재발급하면 아래 **3곳 모두** 
 슬래시 명령어(`/coffee join`, `/coffee leave`)를 사용하려면 Worker 배포 후 Endpoint URL을 등록해야 합니다.
 
 1. [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택
-2. General Information → **Interactions Endpoint URL**에 Worker URL 입력
+2. General Information → **Interactions Endpoint URL**에 `https://coffee.dalestudy.com/api/discord` 입력
 3. "Save Changes" 클릭 (Discord가 자동으로 PING 검증을 수행)
-
-> 현재 URL: `https://coffee.dalestudy.workers.dev`
 
 ### ID 확인 방법
 
@@ -308,25 +305,28 @@ bun run format
 # 타입 체크
 bun run typecheck
 
-# Worker 로컬 개발
-bun run worker:dev
+# 사이트 로컬 개발
+bun run dev
 
-# Worker 배포
-bun run worker:deploy
+# 사이트 빌드
+bun run build
+
+# 배포 (빌드 + wrangler deploy)
+bun run deploy
 
 # 슬래시 명령어 등록
-bun run worker:register
+bun run register-commands
 ```
 
-### Worker 배포 (슬래시 명령어)
+### 배포
 
-`/coffee join`, `/coffee leave` 명령어는 Cloudflare Workers로 처리됩니다.
+웹사이트와 Discord 슬래시 명령어는 Astro + @astrojs/cloudflare로 통합 배포됩니다.
 
 #### 자동 배포
 
-`worker/` 디렉토리 내 파일이 변경되어 `main` 브랜치에 push되면 GitHub Actions가 자동으로 배포합니다.
+`main` 브랜치에 push되면 Cloudflare Workers Builds가 자동으로 빌드 및 배포합니다.
 
-> 현재 배포 URL: `https://coffee.dalestudy.workers.dev`
+> 배포 URL: `https://coffee.dalestudy.com`
 
 #### 최초 설정
 
@@ -334,13 +334,13 @@ bun run worker:register
 
 ```bash
 # 1. 의존성 설치
-cd worker && bun install
+bun install
 
 # 2. Cloudflare 로그인
 bunx wrangler login
 
-# 3. Worker 배포
-bunx wrangler deploy
+# 3. 빌드 + 배포
+bun run deploy
 
 # 4. Bot 토큰 등록 (프롬프트에 토큰 입력)
 bunx wrangler secret put DISCORD_BOT_TOKEN
@@ -349,7 +349,7 @@ bunx wrangler secret put DISCORD_BOT_TOKEN
 bun run register-commands
 ```
 
-마지막으로 [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택 → General Information → **Interactions Endpoint URL**에 배포된 URL을 입력합니다.
+마지막으로 [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택 → General Information → **Interactions Endpoint URL**에 `https://coffee.dalestudy.com/api/discord`를 입력합니다.
 
 #### 멤버 추가 (Cloudflare 계정)
 
@@ -367,8 +367,6 @@ bun run register-commands
 #### 로컬 개발
 
 ```bash
-cd worker
-
 # .dev.vars 파일에 DISCORD_BOT_TOKEN 설정
 echo 'DISCORD_BOT_TOKEN=your-token' > .dev.vars
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-디스코드 서버 멤버들을 자동으로 매칭하여 커피챗(1:1 대화)을 연결해주는 봇입니다. GitHub Actions로 2주마다 자동 실행되며, Discord Role 기반으로 참여자를 관리합니다. `/coffee join`과 `/coffee leave` 슬래시 명령어로 사용자가 직접 참여/탈퇴할 수 있으며, Cloudflare Workers로 서버리스 처리됩니다.
+디스코드 서버 멤버들을 자동으로 매칭하여 커피챗(1:1 대화)을 연결해주는 봇입니다. GitHub Actions로 2주마다 자동 실행되며, Discord Role 기반으로 참여자를 관리합니다. `/coffee join`과 `/coffee leave` 슬래시 명령어로 사용자가 직접 참여/탈퇴할 수 있으며, Astro + @astrojs/cloudflare 어댑터로 웹사이트와 서버리스 엔드포인트를 통합 배포합니다.
 
 ## Development Commands
 
@@ -24,19 +24,60 @@ bun run lint
 # 코드 포맷팅
 bun run format
 
-# Worker 로컬 개발
-bun run worker:dev
+# 사이트 로컬 개발
+bun run dev
 
-# Worker 배포
-bun run worker:deploy
+# 사이트 빌드
+bun run build
+
+# 배포 (빌드 + wrangler deploy)
+bun run deploy
 
 # 슬래시 명령어 등록
-bun run worker:register
+bun run register-commands
 ```
 
 ## Architecture
 
-### 매칭 실행 흐름 (src/index.ts)
+### 프로젝트 구조
+
+```
+coffee/
+├── src/                    ← Astro 소스 (웹사이트 + Discord 엔드포인트)
+│   ├── pages/              ← 웹사이트 페이지 + API 엔드포인트
+│   │   ├── api/discord.ts  ← Discord Interactions 핸들러
+│   │   ├── index.astro     ← 메인 페이지
+│   │   ├── features.astro
+│   │   └── docs/
+│   ├── components/
+│   ├── layouts/
+│   ├── content/
+│   ├── styles/
+│   └── lib/discord/        ← Discord 핸들러 로직
+│       ├── handlers.ts     ← /coffee join, /coffee leave 처리
+│       ├── verify.ts       ← Ed25519 서명 검증
+│       ├── commands.ts     ← 명령어 정의
+│       └── discord-api.ts  ← Discord REST API 호출
+├── match/                  ← 매칭 로직 (GitHub Actions에서 Bun으로 실행)
+│   ├── index.ts            ← 엔트리포인트: bun run match
+│   ├── matcher.ts          ← 매칭 알고리즘
+│   ├── schedule.ts         ← 스케줄 체크
+│   ├── discord.ts          ← Discord API 멤버 조회
+│   ├── webhook.ts          ← 매칭 결과 발표
+│   └── types.ts
+├── data/                   ← 공유 데이터 + 타입
+│   ├── roles.json          ← 역할 설정
+│   ├── types.ts            ← 공유 타입 (RoleConfig 등)
+│   └── */history.json      ← 매칭 이력
+├── scripts/
+│   └── register-commands.ts
+├── astro.config.mjs        ← Astro + @astrojs/cloudflare 설정
+├── wrangler.jsonc           ← Cloudflare Worker 설정 (루트)
+├── package.json             ← 단일 package.json
+└── tsconfig.json            ← Astro tsconfig
+```
+
+### 매칭 실행 흐름 (match/index.ts)
 
 1. **스케줄 체크** (`schedule.ts`) - 역할별 스케줄에 따라 매칭 실행 여부 판단 (수동 트리거 시 건너뜀)
 2. **참여자 조회** (`discord.ts`) - Discord API로 특정 Role을 가진 멤버 목록 가져오기
@@ -45,7 +86,7 @@ bun run worker:register
 5. **이력 저장** (`matcher.ts`) - 새로운 매칭을 history.json에 추가
 6. **Discord 발표** (`webhook.ts`) - Bot API로 매칭 결과 채널에 공지
 
-### 슬래시 명령어 처리 흐름 (worker/src/index.ts)
+### 슬래시 명령어 처리 흐름 (src/pages/api/discord.ts)
 
 1. **서명 검증** (`verify.ts`) - Discord 요청의 Ed25519 서명 검증
 2. **PING/PONG** - Discord 연결 확인 응답
@@ -70,37 +111,29 @@ bun run worker:register
 - `DISCORD_PUBLIC_KEY` - 서명 검증용 공개키 (wrangler.jsonc var)
 - `DISCORD_APPLICATION_ID` - Discord 앱 ID (wrangler.jsonc var)
 - `DISCORD_SERVER_ID` - 서버 ID (wrangler.jsonc var)
-- `DISCORD_ROLE_ID` - 커피챗 Role ID (wrangler.jsonc var)
 - `DISCORD_BOT_TOKEN` - Bot 토큰 (wrangler secret)
 
-### GitHub Actions 자동화
+### 배포
 
-`.github/workflows/match.yml`:
+- **웹사이트 + Worker**: Cloudflare Workers Builds (GitHub 연동, main push 시 자동 배포)
+- **매칭 실행**: GitHub Actions (`match.yml`, 매주 월요일 cron)
+- **CI**: GitHub Actions (`ci.yml`, lint + test)
 
-- **스케줄**: 매주 월요일 UTC 00:00 (KST 09:00)
-- **격주 실행**: 짝수 주에만 매칭 실행 (홀수 주는 skip)
-- **수동 실행**: `workflow_dispatch`로 언제든지 수동 트리거 가능 (스케줄 무시, 즉시 매칭)
-- **이력 관리**: 매칭 후 `data/history.json` 변경사항을 PR로 자동 생성
+배포 URL: `https://coffee.dalestudy.com`
+Discord Interactions Endpoint: `https://coffee.dalestudy.com/api/discord`
 
-## Worker 배포
-
-### 배포하기
+### 수동 배포
 
 ```bash
-# worker 디렉토리에서 실행
-cd worker
-
 # Cloudflare 로그인 (계정 전환 시)
 bunx wrangler login
 
-# 배포
-bunx wrangler deploy
+# 빌드 + 배포
+bun run deploy
 
 # 슬래시 명령어 등록
 bun run register-commands
 ```
-
-배포 URL: `https://coffee.dalestudy.workers.dev`
 
 ### 새로운 Cloudflare 계정에 세팅하기
 
@@ -128,31 +161,31 @@ bun run register-commands
      --data '{"subdomain": "원하는이름"}'
    ```
 
-3. **Worker 배포**
+3. **배포**
 
    ```bash
-   cd worker && bunx wrangler deploy
+   bun run deploy
    ```
 
 4. **Bot 토큰 등록**
 
    ```bash
-   cd worker && bunx wrangler secret put DISCORD_BOT_TOKEN
+   bunx wrangler secret put DISCORD_BOT_TOKEN
    ```
 
 5. **슬래시 명령어 등록**
 
    ```bash
-   cd worker && bun run register-commands
+   bun run register-commands
    ```
 
 6. **Discord Interactions Endpoint URL 설정**
 
-   [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택 → General Information → Interactions Endpoint URL에 배포된 Worker URL 입력 후 저장
+   [Discord Developer Portal](https://discord.com/developers/applications) → 앱 선택 → General Information → Interactions Endpoint URL에 `https://coffee.dalestudy.com/api/discord` 입력 후 저장
 
 ### 참고사항
 
-- `wrangler.jsonc`의 `vars`에는 공개 가능한 값만 포함 (`DISCORD_PUBLIC_KEY`, `DISCORD_APPLICATION_ID`, `DISCORD_SERVER_ID`, `DISCORD_ROLE_ID`)
+- `wrangler.jsonc`의 `vars`에는 공개 가능한 값만 포함 (`DISCORD_PUBLIC_KEY`, `DISCORD_APPLICATION_ID`, `DISCORD_SERVER_ID`)
 - `DISCORD_BOT_TOKEN`은 반드시 `wrangler secret`으로 관리
 - Cloudflare 계정의 이메일 인증이 완료되어야 Worker 배포 가능
 
@@ -160,7 +193,7 @@ bun run register-commands
 
 - **Runtime**: Bun (TypeScript 네이티브 지원)
 - **Formatter**: Biome (tab indent, recommended rules)
-- **Testing**: Bun test (`*.test.ts` 파일)
+- **Testing**: Bun test (`*.test.ts` 파일, `match/` 디렉토리)
 - **Import**: ESM (`type: "module"`)
 
 ## Testing

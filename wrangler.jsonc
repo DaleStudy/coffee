@@ -1,14 +1,11 @@
 {
 	"name": "coffee",
 	"account_id": "94480614a6df7731f1e4491bdac5c440",
-	"main": "src/index.ts",
+	"main": "@astrojs/cloudflare/entrypoints/server",
 	"compatibility_date": "2025-02-03",
 	"assets": {
-		"directory": "../site/dist",
-		"binding": "ASSETS",
-		"html_handling": "auto-trailing-slash",
-		"not_found_handling": "404-page",
-		"run_worker_first": true
+		"directory": "./dist",
+		"binding": "ASSETS"
 	},
 	"vars": {
 		"DISCORD_PUBLIC_KEY": "48f59590c72e1076554a99adeeb47eb678c87b92202b18cfea1b03ce5dbcbf02",
@@ -16,4 +13,5 @@
 		"DISCORD_SERVER_ID": "775115965964222492"
 	}
 	// DISCORD_BOT_TOKEN is stored as a secret via `wrangler secret put DISCORD_BOT_TOKEN`
+	// Deployment: Cloudflare Workers Builds (GitHub 연동, main 브랜치 push 시 자동 배포)
 }
