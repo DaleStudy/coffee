@@ -44,7 +44,7 @@ jobs:
       - name: Format generated files
         run: bun run format
 
-      - name: Create Pull Request
+      - name: Create and merge Pull Request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -56,4 +56,7 @@ jobs:
           git diff --staged --quiet && exit 0
           git commit -m "chore: update match history"
           git push -u origin "$BRANCH_NAME"
-          gh pr create --fill --body "자동 생성된 커피챗 매칭 히스토리 업데이트입니다."
+          PR_URL=$(gh pr create --fill --body "자동 생성된 커피챗 매칭 히스토리 업데이트입니다.")
+          # 다음 매칭 cron 전에 history가 main에 반영되도록 즉시 머지한다.
+          # 머지가 지연되면 stale history로 인해 재매칭/동일매칭이 발생한다.
+          gh pr merge "$PR_URL" --squash --delete-branch
