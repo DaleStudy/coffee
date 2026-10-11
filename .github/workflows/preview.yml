@@ -16,6 +16,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: DaleStudy/.github/.github/workflows/workers-preview.yml@workers-preview/v2
+    uses: DaleStudy/.github/.github/workflows/workers-preview.yml@main
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
