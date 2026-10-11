@@ -4,14 +4,9 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   deploy:
-    # 포크 PR에는 secret이 전달되지 않으므로 같은 저장소의 PR만 미리보기 버전을 올린다
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,17 +19,7 @@ jobs:
 
       - run: bun run build
 
-      - name: Upload preview version
-        if: github.event_name == 'pull_request'
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          packageManager: bun
-          command: versions upload
-
-      # secret은 운영 Worker에 바로 반영되므로 main 배포에서만 넣는다
       - name: Deploy
-        if: github.event_name == 'push'
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
