@@ -23,7 +23,7 @@ export function handleAutocomplete(
 
 	const focusedOption =
 		subcommand?.type === ApplicationCommandOptionType.Subcommand
-			? subcommand.options?.find((opt: { focused?: boolean }) => opt.focused)
+			? subcommand.options?.find((opt) => "focused" in opt && opt.focused)
 			: undefined;
 
 	const query = (
