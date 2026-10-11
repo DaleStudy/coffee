@@ -9,9 +9,38 @@ on:
       - main
 
 jobs:
-  deploy:
+  preview:
     # 포크 PR에는 secret이 전달되지 않으므로 같은 저장소의 PR만 미리보기 버전을 올린다
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run build
+
+      - name: Upload preview version
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          packageManager: bun
+          command: versions upload --preview-alias pr-${{ github.event.pull_request.number }}
+
+      - name: Comment preview URL
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: preview
+          message: |
+            🔍 미리보기: https://pr-${{ github.event.pull_request.number }}-coffee.dalestudy.workers.dev (${{ github.event.pull_request.head.sha }})
+
+  deploy:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,22 +53,12 @@ jobs:
 
       - run: bun run build
 
-      - name: Upload preview version
-        if: github.event_name == 'pull_request'
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          packageManager: bun
-          command: versions upload
-
       - name: Write secrets file
-        if: github.event_name == 'push'
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
         run: printf 'DISCORD_BOT_TOKEN=%s\n' "$DISCORD_BOT_TOKEN" > "$RUNNER_TEMP/secrets.env"
 
       - name: Deploy
-        if: github.event_name == 'push'
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
