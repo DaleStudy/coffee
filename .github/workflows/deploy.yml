@@ -7,15 +7,11 @@ on:
   pull_request:
     branches:
       - main
-    types: [opened, synchronize, reopened, closed]
 
 jobs:
   preview:
     # 포크 PR에는 secret이 전달되지 않으므로 같은 저장소의 PR만 미리보기를 만든다
-    if: >
-      github.event_name == 'pull_request' &&
-      github.event.action != 'closed' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -29,37 +25,19 @@ jobs:
 
       - run: bun run build
 
-      - name: Create or update Preview
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler preview --name "pr-${{ github.event.pull_request.number }}"
+      - name: Upload preview version
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          packageManager: bun
+          command: versions upload --preview-alias pr-${{ github.event.pull_request.number }}
 
-      - name: Comment Preview URL
+      - name: Comment preview URL
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh pr comment "${{ github.event.pull_request.number }}" --edit-last --create-if-none \
             --body "🔍 미리보기: https://pr-${{ github.event.pull_request.number }}-coffee.dalestudy.workers.dev"
-
-  cleanup:
-    if: >
-      github.event_name == 'pull_request' &&
-      github.event.action == 'closed' &&
-      github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: oven-sh/setup-bun@v2
-
-      - run: bun install --frozen-lockfile
-
-      - name: Delete Preview
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bunx wrangler preview delete --name "pr-${{ github.event.pull_request.number }}" -y
 
   deploy:
     if: github.event_name == 'push'
@@ -75,12 +53,14 @@ jobs:
 
       - run: bun run build
 
+      - name: Write secrets file
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: printf 'DISCORD_BOT_TOKEN=%s\n' "$DISCORD_BOT_TOKEN" > "$RUNNER_TEMP/secrets.env"
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           packageManager: bun
-          secrets: |
-            DISCORD_BOT_TOKEN
-        env:
-          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          command: deploy --secrets-file ${{ runner.temp }}/secrets.env

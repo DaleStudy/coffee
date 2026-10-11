@@ -11,16 +11,6 @@
 		"DISCORD_PUBLIC_KEY": "48f59590c72e1076554a99adeeb47eb678c87b92202b18cfea1b03ce5dbcbf02",
 		"DISCORD_APPLICATION_ID": "1464984307331502092",
 		"DISCORD_SERVER_ID": "775115965964222492"
-	},
-	"previews": {
-		"vars": {
-			"DISCORD_PUBLIC_KEY": "48f59590c72e1076554a99adeeb47eb678c87b92202b18cfea1b03ce5dbcbf02",
-			"DISCORD_APPLICATION_ID": "1464984307331502092",
-			"DISCORD_SERVER_ID": "775115965964222492"
-		},
-		"images": {
-			"binding": "IMAGES"
-		}
 	}
 	// DISCORD_BOT_TOKEN은 GitHub secret에서 배포할 때 Worker secret으로 넣는다 (.github/workflows/deploy.yml)
 }
