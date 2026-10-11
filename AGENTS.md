@@ -115,7 +115,7 @@ coffee/
 
 ### 배포
 
-- **웹사이트 + Worker**: GitHub Actions (`deploy.yml`, main push 시 배포, PR은 미리보기 버전 업로드)
+- **웹사이트 + Worker**: GitHub Actions (`deploy.yml`, main push 시 배포, PR마다 Preview 생성 후 닫히면 삭제)
 - **매칭 실행**: GitHub Actions (`match.yml`, 매주 월요일 cron)
 - **CI**: GitHub Actions (`ci.yml`, lint + test)
 
