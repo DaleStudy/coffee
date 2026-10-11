@@ -324,7 +324,7 @@ bun run register-commands
 
 #### 자동 배포
 
-`main` 브랜치에 push되면 Cloudflare Workers Builds가 자동으로 빌드 및 배포합니다.
+`main` 브랜치에 push되면 GitHub Actions(`deploy.yml`)가 빌드 및 배포합니다. `DISCORD_BOT_TOKEN`은 GitHub secret에서 배포할 때 Worker secret으로 넣습니다.
 
 > 배포 URL: `https://coffee.dalestudy.com`
 

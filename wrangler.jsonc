@@ -12,6 +12,5 @@
 		"DISCORD_APPLICATION_ID": "1464984307331502092",
 		"DISCORD_SERVER_ID": "775115965964222492"
 	}
-	// DISCORD_BOT_TOKEN is stored as a secret via `wrangler secret put DISCORD_BOT_TOKEN`
-	// Deployment: Cloudflare Workers Builds (GitHub 연동, main 브랜치 push 시 자동 배포)
+	// DISCORD_BOT_TOKEN은 GitHub secret에서 배포할 때 Worker secret으로 넣는다 (.github/workflows/deploy.yml)
 }
