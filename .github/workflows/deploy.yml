@@ -19,25 +19,58 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # 댓글에 표시할 짧은 커밋 해시와 UTC 시각 계산
+      - name: Prepare commit metadata
+        id: commit
+        run: |
+          echo "short_sha=$(echo '${{ github.event.pull_request.head.sha }}' | cut -c1-8)" >> "$GITHUB_OUTPUT"
+          echo "now=$(date -u '+%b %d %Y, %I:%M %p')" >> "$GITHUB_OUTPUT"
+          alias="pr-${{ github.event.pull_request.number }}"
+          echo "alias=$alias" >> "$GITHUB_OUTPUT"
+          echo "preview_url=https://$alias-coffee.dalestudy.workers.dev" >> "$GITHUB_OUTPUT"
+
       - uses: oven-sh/setup-bun@v2
 
       - run: bun install --frozen-lockfile
 
       - run: bun run build
 
+      - name: Render in-progress comment
+        env:
+          STATUS: 🔵 In progress
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHORT_SHA: ${{ steps.commit.outputs.short_sha }}
+          PREVIEW_URL: "-"
+          NOW: ${{ steps.commit.outputs.now }}
+        run: envsubst < .github/preview-comment.md > comment.md
+
+      - name: Comment build in progress
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: cloudflare-workers
+          path: comment.md
+
       - name: Upload preview version
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           packageManager: bun
-          command: versions upload --preview-alias pr-${{ github.event.pull_request.number }}
+          command: versions upload --preview-alias ${{ steps.commit.outputs.alias }}
+
+      - name: Render ready comment
+        env:
+          STATUS: ✅ Ready
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHORT_SHA: ${{ steps.commit.outputs.short_sha }}
+          PREVIEW_URL: <a href='${{ steps.commit.outputs.preview_url }}'>Commit Preview URL</a>
+          NOW: ${{ steps.commit.outputs.now }}
+        run: envsubst < .github/preview-comment.md > comment.md
 
       - name: Comment preview URL
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh pr comment "${{ github.event.pull_request.number }}" --edit-last --create-if-none \
-            --body "🔍 미리보기: https://pr-${{ github.event.pull_request.number }}-coffee.dalestudy.workers.dev"
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: cloudflare-workers
+          path: comment.md
 
   deploy:
     if: github.event_name == 'push'
