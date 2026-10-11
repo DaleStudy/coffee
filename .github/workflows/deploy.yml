@@ -32,14 +32,18 @@ jobs:
           packageManager: bun
           command: versions upload
 
-      # secret은 운영 Worker에 바로 반영되므로 main 배포에서만 넣는다
+      # secret을 배포와 함께 넣는다. 배포 전에 따로 넣으면(wrangler secret bulk) PR 미리보기 버전이
+      # 최신 버전으로 남아 있을 때 Cloudflare가 거부한다 (code 10214)
+      - name: Write secrets file
+        if: github.event_name == 'push'
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: printf 'DISCORD_BOT_TOKEN=%s\n' "$DISCORD_BOT_TOKEN" > "$RUNNER_TEMP/secrets.env"
+
       - name: Deploy
         if: github.event_name == 'push'
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           packageManager: bun
-          secrets: |
-            DISCORD_BOT_TOKEN
-        env:
-          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          command: deploy --secrets-file ${{ runner.temp }}/secrets.env
