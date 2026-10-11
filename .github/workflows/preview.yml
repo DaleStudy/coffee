@@ -9,7 +9,6 @@ concurrency:
 
 jobs:
   preview:
-    runs-on: ubuntu-latest
     # 포크 PR에는 secret이 전달되지 않으므로 같은 저장소의 PR만 미리보기를 만든다
     if: >
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -17,39 +16,8 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: oven-sh/setup-bun@v2
-
-      - run: bun install --frozen-lockfile
-
-      - run: bun run build
-
-      - name: Upload preview version
-        id: upload
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          packageManager: bun
-          command: versions upload --preview-alias pr-${{ github.event.pull_request.number }}
-
-      - name: Render comment
-        if: always()
-        env:
-          STATUS: ${{ steps.upload.outcome == 'success' && '✅ Ready' || '❌ Failed' }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PREVIEW_URL: <a href='https://pr-${{ github.event.pull_request.number }}-coffee.dalestudy.workers.dev'>Commit Preview URL</a>
-        run: |
-          SHORT_SHA="${HEAD_SHA::8}"
-          NOW="$(date -u '+%b %d %Y, %I:%M %p')"
-          export SHORT_SHA NOW
-          envsubst < .github/preview-comment.md > comment.md
-
-      - name: Comment
-        if: always()
-        uses: marocchino/sticky-pull-request-comment@v3
-        with:
-          header: cloudflare-workers
-          path: comment.md
+    uses: DaleStudy/.github/.github/workflows/workers-preview.yml@workers-preview/v1
+    with:
+      worker: coffee
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
