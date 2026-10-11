@@ -29,21 +29,17 @@ jobs:
 
       - run: bun run build
 
-      - id: preview
-        name: Create or update Preview
+      - name: Create or update Preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          set -o pipefail
-          output="$(bunx wrangler preview --name "pr-${{ github.event.pull_request.number }}" --json)"
-          echo "url=$(printf '%s' "$output" | jq -er '.preview.urls[0]')" >> "$GITHUB_OUTPUT"
+        run: bunx wrangler preview --name "pr-${{ github.event.pull_request.number }}"
 
       - name: Comment Preview URL
         env:
           GH_TOKEN: ${{ github.token }}
-          PREVIEW_URL: ${{ steps.preview.outputs.url }}
         run: |
-          gh pr comment "${{ github.event.pull_request.number }}" --edit-last --create-if-none --body "🔍 미리보기: $PREVIEW_URL"
+          gh pr comment "${{ github.event.pull_request.number }}" --edit-last --create-if-none \
+            --body "🔍 미리보기: https://pr-${{ github.event.pull_request.number }}-coffee.dalestudy.workers.dev"
 
   cleanup:
     if: >
