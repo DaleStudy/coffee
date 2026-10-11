@@ -111,11 +111,11 @@ coffee/
 - `DISCORD_PUBLIC_KEY` - 서명 검증용 공개키 (wrangler.jsonc var)
 - `DISCORD_APPLICATION_ID` - Discord 앱 ID (wrangler.jsonc var)
 - `DISCORD_SERVER_ID` - 서버 ID (wrangler.jsonc var)
-- `DISCORD_BOT_TOKEN` - Bot 토큰 (wrangler secret)
+- `DISCORD_BOT_TOKEN` - Bot 토큰 (GitHub secret, 배포 시 Worker secret으로 주입)
 
 ### 배포
 
-- **웹사이트 + Worker**: Cloudflare Workers Builds (GitHub 연동, main push 시 자동 배포)
+- **웹사이트 + Worker**: GitHub Actions (`deploy.yml`, main push 시 배포, PR은 미리보기 버전 업로드)
 - **매칭 실행**: GitHub Actions (`match.yml`, 매주 월요일 cron)
 - **CI**: GitHub Actions (`ci.yml`, lint + test)
 
