@@ -2,6 +2,7 @@ name: Preview 🔍
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, closed]
 
 concurrency:
   group: preview-${{ github.event.pull_request.number }}
@@ -16,6 +17,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: DaleStudy/.github/.github/workflows/workers-preview.yml@main
+    uses: DaleStudy/.github/.github/workflows/workers-preview.yml@use-workers-previews
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
