@@ -115,7 +115,7 @@ coffee/
 
 ### 배포
 
-- **웹사이트 + Worker**: GitHub Actions (`deploy.yml`, main push 시 배포, PR은 미리보기 버전 업로드)
+- **웹사이트 + Worker**: GitHub Actions (`deploy.yml`, main push 시 배포). PR 미리보기는 `preview.yml`이 Workers Previews로 띄우고 PR이 닫히면 지운다 (설정은 `wrangler.jsonc`의 `previews`)
 - **매칭 실행**: GitHub Actions (`match.yml`, 매주 월요일 cron)
 - **CI**: GitHub Actions (`ci.yml`, lint + test)
 
@@ -186,7 +186,7 @@ bun run register-commands
 ### 참고사항
 
 - `wrangler.jsonc`의 `vars`에는 공개 가능한 값만 포함 (`DISCORD_PUBLIC_KEY`, `DISCORD_APPLICATION_ID`, `DISCORD_SERVER_ID`)
-- `DISCORD_BOT_TOKEN`은 반드시 `wrangler secret`으로 관리
+- `DISCORD_BOT_TOKEN`은 GitHub secret으로 관리하고 배포할 때 Worker secret으로 넣는다. `wrangler secret put`으로 따로 바꾸지 않는다
 - Cloudflare 계정의 이메일 인증이 완료되어야 Worker 배포 가능
 
 ## Code Style
