@@ -5,7 +5,8 @@
 	"compatibility_date": "2025-02-03",
 	"assets": {
 		"directory": "./dist",
-		"binding": "ASSETS"
+		"binding": "ASSETS",
+		"html_handling": "drop-trailing-slash"
 	},
 	"vars": {
 		"DISCORD_PUBLIC_KEY": "48f59590c72e1076554a99adeeb47eb678c87b92202b18cfea1b03ce5dbcbf02",
