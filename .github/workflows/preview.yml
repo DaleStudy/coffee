@@ -13,8 +13,26 @@ jobs:
     if: >
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-    uses: DaleStudy/.github/.github/workflows/workers-preview.yml@main
-    secrets:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    # 미리보기 주소는 GitHub 배포(previews 환경)로 PR에 표시된다. 오래된 미리보기는 Cloudflare가 정리한다
+    environment:
+      name: previews
+      url: ${{ steps.preview.outputs.preview-url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run build
+
+      - name: Deploy preview
+        id: preview
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          packageManager: bun
+          command: preview --name pr-${{ github.event.pull_request.number }} --ignore-base-config
