@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    # 미리보기 주소는 GitHub 배포(previews 환경)로 PR에 표시된다. 오래된 미리보기는 Cloudflare가 정리한다
+    # 미리보기 주소는 GitHub 배포(preview 환경)로 PR에 표시된다. 오래된 미리보기는 Cloudflare가 정리한다
     environment:
-      name: previews
+      name: preview
       url: ${{ steps.preview.outputs.preview-url }}
     steps:
       - uses: actions/checkout@v7
