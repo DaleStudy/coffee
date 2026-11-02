@@ -4,7 +4,13 @@
 	"main": "@astrojs/cloudflare/entrypoints/server",
 	"compatibility_date": "2025-02-03",
 	// 운영 도메인이 미리보기도 받는다(previews_enabled). 미리보기는 pr-<번호>.coffee.dalestudy.com 에 뜬다
-	"routes": [{ "pattern": "coffee.dalestudy.com", "custom_domain": true, "previews_enabled": true }],
+	"routes": [
+		{
+			"pattern": "coffee.dalestudy.com",
+			"custom_domain": true,
+			"previews_enabled": true
+		}
+	],
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS",
