@@ -71,6 +71,7 @@ describe("createGroupThreads", () => {
 			const msg1Body = JSON.parse(calls[1].body);
 			expect(msg1Body.content).toContain("<@1>");
 			expect(msg1Body.content).toContain("<@2>");
+			expect(msg1Body.content).toContain("https://schedule.dalestudy.com");
 
 			// 두 번째 그룹: 쓰레드 생성
 			expect(calls[2].url).toContain(`/channels/${TEST_CHANNEL_ID}/threads`);

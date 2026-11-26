@@ -16,7 +16,7 @@ function buildThreadName(displayName: string, groupIndex: number): string {
 
 function buildMessageContent(group: Participant[]): string {
 	const mentions = group.map((p) => `<@${p.id}>`).join(" ");
-	return `${mentions}\n반가워요! 편하게 시간 맞춰서 커피챗 해보세요 ☕\n서로 가능한 일정을 조율해서 디스코드에 이벤트를 생성해주세요!`;
+	return `${mentions}\n반가워요! 편하게 시간 맞춰서 커피챗 해보세요 ☕\n가능한 시간은 스케줄러로 맞추면 편해요: https://schedule.dalestudy.com\n시간이 정해지면 디스코드에 이벤트를 만들어 주세요!`;
 }
 
 async function isForumChannel(
