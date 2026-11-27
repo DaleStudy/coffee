@@ -94,16 +94,16 @@ async function main() {
 			});
 			console.log(`[DRY_RUN] 매칭 결과:\n${lines.join("\n")}`);
 		} else {
-			// 4. 매칭 이력 저장
-			await saveHistory(role.name, history, groups);
-
-			// 5. 조별 쓰레드 생성
-			await createGroupThreads(
+			// 4. 조별 쓰레드 생성
+			const threads = await createGroupThreads(
 				role.channelId,
 				botToken,
 				groups,
 				role.displayName,
 			);
+
+			// 5. 매칭 이력 저장 (조별 쓰레드 ID 포함)
+			await saveHistory(role.name, history, groups, threads);
 		}
 
 		console.log(`${role.displayName}: ✅ 매칭 완료!`);

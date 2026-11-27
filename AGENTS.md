@@ -83,8 +83,8 @@ coffee/
 2. **참여자 조회** (`discord.ts`) - Discord API로 특정 Role을 가진 멤버 목록 가져오기
 3. **매칭 이력 로드** (`matcher.ts`) - `data/history.json`에서 과거 매칭 기록 로드
 4. **매칭 생성** (`matcher.ts`) - Fisher-Yates 셔플 + 중복 방지 알고리즘
-5. **이력 저장** (`matcher.ts`) - 새로운 매칭을 history.json에 추가
-6. **Discord 발표** (`webhook.ts`) - Bot API로 매칭 결과 채널에 공지
+5. **Discord 발표** (`webhook.ts`) - Bot API로 매칭 결과 채널에 조별 쓰레드 생성
+6. **이력 저장** (`matcher.ts`) - 새로운 매칭과 조별 쓰레드 ID를 history.json에 추가
 
 ### 슬래시 명령어 처리 흐름 (src/pages/api/discord.ts)
 
@@ -97,7 +97,7 @@ coffee/
 
 - **중복 방지**: 최근 4회 매칭 이력과 비교하여 같은 조합 회피 (최대 100번 재시도)
 - **홀수 처리**: 참여자가 홀수일 경우 마지막 조를 3인 1조로 구성
-- **데이터 구조**: `data/history.json`에 날짜별 매칭 기록 저장
+- **데이터 구조**: `data/history.json`에 날짜별 매칭 기록 저장. 회차마다 조 구성(`pairs`)과, 같은 순서의 조별 쓰레드 ID(`threads`, 생성 실패 시 `null`)를 남긴다. 지난 회차에는 `threads`가 없다
 
 ### 환경변수
 

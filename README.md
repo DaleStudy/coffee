@@ -138,8 +138,8 @@ gh workflow run match.yml
 1. Discord API로 Role 기반 참여자 조회
 2. 매칭 이력 로드 (`data/history.json`)
 3. 중복 방지 알고리즘으로 매칭 생성
-4. `history.json`에 새 매칭 저장
-5. Discord Bot API로 결과 발표
+4. Discord Bot API로 결과 발표
+5. `history.json`에 새 매칭과 조별 쓰레드 ID 저장
 6. 자동 PR 생성 (`chore/update-match-history-YYYY-MM-DD`)
 
 ## 매칭 알고리즘

@@ -1,6 +1,8 @@
 export interface MatchRecord {
 	date: string;
 	pairs: string[][];
+	/** pairs와 같은 순서의 조별 쓰레드 ID. 쓰레드를 만들지 못한 조는 null */
+	threads?: (string | null)[];
 }
 
 export interface MatchHistory {
