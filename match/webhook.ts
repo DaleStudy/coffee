@@ -36,13 +36,14 @@ export async function createGroupThreads(
 	botToken: string,
 	groups: Participant[][],
 	displayName: string,
-): Promise<void> {
+): Promise<(string | null)[]> {
 	const headers = {
 		"Content-Type": "application/json",
 		Authorization: `Bot ${botToken}`,
 	};
 
 	const forum = await isForumChannel(channelId, headers);
+	const threadIds: (string | null)[] = groups.map(() => null);
 
 	for (let i = 0; i < groups.length; i++) {
 		const group = groups[i];
@@ -75,8 +76,10 @@ export async function createGroupThreads(
 				continue;
 			}
 
+			const thread = (await threadResponse.json()) as { id: string };
+			threadIds[i] = thread.id;
+
 			if (!forum) {
-				const thread = (await threadResponse.json()) as { id: string };
 				await fetch(`${DISCORD_API_BASE}/channels/${thread.id}/messages`, {
 					method: "POST",
 					headers,
@@ -89,4 +92,5 @@ export async function createGroupThreads(
 	}
 
 	console.log("Discord에 조별 쓰레드 생성 완료");
+	return threadIds;
 }

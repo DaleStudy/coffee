@@ -158,7 +158,7 @@ describe("createGroupThreads", () => {
 				],
 			];
 
-			await createGroupThreads(
+			const threadIds = await createGroupThreads(
 				TEST_CHANNEL_ID,
 				TEST_BOT_TOKEN,
 				groups,
@@ -168,6 +168,8 @@ describe("createGroupThreads", () => {
 			expect(threadCalls.length).toBe(2);
 			// 첫 번째 실패(쓰레드만) + 두 번째 성공(쓰레드+메시지) = 3회
 			expect(callCount).toBe(3);
+			// 실패한 조는 null, 성공한 조는 쓰레드 ID
+			expect(threadIds).toEqual([null, "thread-ok"]);
 		});
 
 		test("초기 메시지에 모든 멤버가 멘션된다", async () => {
@@ -248,7 +250,7 @@ describe("createGroupThreads", () => {
 				],
 			];
 
-			await createGroupThreads(
+			const threadIds = await createGroupThreads(
 				TEST_CHANNEL_ID,
 				TEST_BOT_TOKEN,
 				groups,
@@ -257,6 +259,7 @@ describe("createGroupThreads", () => {
 
 			// 포럼 채널: 그룹당 1회 API 호출 (메시지 포함)
 			expect(calls.length).toBe(2);
+			expect(threadIds).toEqual(["thread-1", "thread-2"]);
 
 			// 첫 번째 포스트
 			expect(calls[0].url).toContain(`/channels/${TEST_CHANNEL_ID}/threads`);

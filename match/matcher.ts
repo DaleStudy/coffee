@@ -18,10 +18,12 @@ export async function saveHistory(
 	roleName: string,
 	history: MatchHistory,
 	groups: Participant[][],
+	threads: (string | null)[],
 ): Promise<void> {
 	const newRecord = {
 		date: new Date().toISOString().split("T")[0],
 		pairs: groups.map((group) => group.map((p) => p.id)),
+		threads,
 	};
 
 	history.matches.push(newRecord);
